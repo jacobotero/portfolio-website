@@ -9,7 +9,7 @@ export function Hero() {
     1100,
   )
   const { output: line3 } = useTypewriter(
-    'CS senior · AWS Solutions Architect (Associate) · Python & AI',
+    'CS senior · AWS Solutions Architect · Python & AI',
     28,
     2500,
   )
