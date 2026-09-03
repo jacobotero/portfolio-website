@@ -9,7 +9,7 @@ export function Resume() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
           <a
             href="/resume.pdf"
-            download
+            download="Jacob Otero - Resume.pdf"
             className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-accent-dim text-accent hover:bg-accent/10 transition-colors w-fit"
           >
             ↓ download-resume.pdf
