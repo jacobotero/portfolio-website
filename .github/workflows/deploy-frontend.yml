@@ -34,7 +34,9 @@ jobs:
           VITE_CONTACT_API_URL: ${{ vars.CONTACT_API_URL }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      # Pinned to a commit SHA (v4.3.1), not a mutable tag, since this
+      # action handles AWS credentials directly.
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}

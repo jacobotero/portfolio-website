@@ -88,6 +88,7 @@ class InfraStack(Stack):
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3BucketOrigin.with_origin_access_control(site_bucket),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                response_headers_policy=cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
             ),
             # Single-page app: unknown paths fall back to index.html.
             error_responses=[
@@ -140,7 +141,11 @@ class InfraStack(Stack):
         contact_fn.add_to_role_policy(
             iam.PolicyStatement(
                 actions=["ses:SendEmail", "ses:SendRawEmail"],
-                resources=["*"],
+                # Scoped to the one verified identity this Lambda actually
+                # sends as, rather than every identity in the account.
+                resources=[
+                    f"arn:aws:ses:{self.region}:{self.account}:identity/{CONTACT_FROM_EMAIL}"
+                ],
             )
         )
 
@@ -157,6 +162,16 @@ class InfraStack(Stack):
                 allow_methods=[apigwv2.CorsHttpMethod.POST],
                 allow_headers=["content-type"],
             ),
+        )
+        # A human can't legitimately submit this form faster than a few
+        # times a second; this blunts a spam/abuse script without affecting
+        # real visitors. Set via the L1 escape hatch on the auto-created
+        # default stage — creating a second stage for "$default" conflicts
+        # with API Gateway's one-stage-per-name constraint.
+        default_stage_cfn = http_api.default_stage.node.default_child
+        default_stage_cfn.default_route_settings = apigwv2.CfnStage.RouteSettingsProperty(
+            throttling_rate_limit=5,
+            throttling_burst_limit=10,
         )
         http_api.add_routes(
             path="/contact",
