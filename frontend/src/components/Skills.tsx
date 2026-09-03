@@ -14,6 +14,7 @@ interface Certification {
   alt: string
   title: string
   description: string
+  link?: string
 }
 
 const CERTIFICATIONS: Certification[] = [
@@ -30,6 +31,7 @@ const CERTIFICATIONS: Certification[] = [
     title: 'Google AI Professional Certificate',
     description:
       'Completed — practical coursework on building and applying AI/ML tools.',
+    link: 'https://www.coursera.org/account/accomplishments/professional-cert/certificate/MFQ3BPXDSCLO',
   },
 ]
 
@@ -75,7 +77,21 @@ export function Skills() {
                   className="w-16 sm:w-20 shrink-0 drop-shadow-[0_4px_16px_rgba(57,217,138,0.15)]"
                 />
                 <div>
-                  <p className="text-heading font-medium">{cert.title}</p>
+                  <p className="text-heading font-medium flex items-center gap-2">
+                    {cert.title}
+                    {cert.link && (
+                      <a
+                        href={cert.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`View credential: ${cert.title}`}
+                        title="View credential"
+                        className="text-text-dim hover:text-accent transition-colors"
+                      >
+                        ↗
+                      </a>
+                    )}
+                  </p>
                   <p className="text-sm text-text-dim mt-1">{cert.description}</p>
                 </div>
               </div>
