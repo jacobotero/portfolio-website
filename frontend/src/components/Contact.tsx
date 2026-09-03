@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_CONTACT_API_URL as string | undefined
 
 const SOCIALS = [
   { label: 'github', href: 'https://github.com/jacobotero' },
-  { label: 'linkedin', href: 'https://linkedin.com/in/jacobotero' },
+  { label: 'linkedin', href: 'https://www.linkedin.com/in/jacob-otero' },
   { label: 'email', href: 'mailto:jacobotero0313@gmail.com' },
 ]
 
