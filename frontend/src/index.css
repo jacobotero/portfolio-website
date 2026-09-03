@@ -14,6 +14,7 @@
 
   --animate-blink: blink 1.1s steps(1) infinite;
   --animate-fade-up: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-target-flash: target-flash 1s ease-out;
 
   @keyframes blink {
     0%,
@@ -36,10 +37,34 @@
       transform: translateY(0);
     }
   }
+
+  /* Plays on a section when a nav/hero link jumps to it — a quick accent
+     wipe down the left edge plus a fading tint, so arrival reads as a
+     deliberate "landed here" beat rather than an abrupt cut. */
+  @keyframes target-flash {
+    0% {
+      box-shadow: inset 3px 0 0 0 var(--color-accent);
+      background-color: rgba(57, 217, 138, 0.08);
+    }
+    100% {
+      box-shadow: inset 3px 0 0 0 transparent;
+      background-color: transparent;
+    }
+  }
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-target-flash {
+    animation: none;
+  }
 }
 
 body {

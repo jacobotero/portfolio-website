@@ -9,7 +9,7 @@ const SKILL_GROUPS: { label: string; items: string[] }[] = [
 
 export function Skills() {
   return (
-    <section id="skills" className="px-6 py-24 border-t border-border">
+    <section id="skills" className="px-6 py-24 border-t border-border scroll-mt-20">
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="ls -la skills/" title="Skills" />
 

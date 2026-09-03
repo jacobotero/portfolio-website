@@ -57,7 +57,7 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="px-6 py-24 border-t border-border">
+    <section id="contact" className="px-6 py-24 border-t border-border scroll-mt-20">
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="./contact.sh" title="Get in touch" />
 

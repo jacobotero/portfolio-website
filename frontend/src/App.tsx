@@ -6,8 +6,11 @@ import { Nav } from './components/Nav'
 import { Projects } from './components/Projects'
 import { Resume } from './components/Resume'
 import { Skills } from './components/Skills'
+import { useScrollFlash } from './hooks/useScrollFlash'
 
 function App() {
+  useScrollFlash()
+
   return (
     <>
       <Nav />

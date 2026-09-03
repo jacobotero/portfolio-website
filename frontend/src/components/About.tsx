@@ -2,7 +2,7 @@ import { TerminalHeading } from './TerminalHeading'
 
 export function About() {
   return (
-    <section id="about" className="px-6 py-24 border-t border-border">
+    <section id="about" className="px-6 py-24 border-t border-border scroll-mt-20">
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="cat about.md" title="About" />
         <div className="space-y-4 text-sm sm:text-base leading-relaxed text-text max-w-2xl">
