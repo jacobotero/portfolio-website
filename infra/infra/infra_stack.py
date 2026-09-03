@@ -11,6 +11,9 @@ from aws_cdk import (
     aws_apigatewayv2_integrations as apigwv2_integrations,
 )
 from aws_cdk import (
+    aws_certificatemanager as acm,
+)
+from aws_cdk import (
     aws_cloudfront as cloudfront,
 )
 from aws_cdk import (
@@ -23,6 +26,12 @@ from aws_cdk import (
     aws_lambda as lambda_,
 )
 from aws_cdk import (
+    aws_route53 as route53,
+)
+from aws_cdk import (
+    aws_route53_targets as route53_targets,
+)
+from aws_cdk import (
     aws_s3 as s3,
 )
 from constructs import Construct
@@ -33,6 +42,9 @@ CONTACT_TO_EMAIL = "jacobotero0313@gmail.com"
 CONTACT_FROM_EMAIL = CONTACT_TO_EMAIL
 
 LOCAL_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5184"]
+
+DOMAIN_NAME = "jacobotero.dev"
+WWW_DOMAIN_NAME = f"www.{DOMAIN_NAME}"
 
 # GitHub's OIDC "sub" claim embeds the numeric owner/repo IDs
 # (repo:<owner>@<ownerId>/<repo>@<repoId>:...) rather than plain names, as an
@@ -53,10 +65,26 @@ class InfraStack(Stack):
             removal_policy=RemovalPolicy.RETAIN,
         )
 
+        hosted_zone = route53.HostedZone.from_lookup(
+            self, "HostedZone", domain_name=DOMAIN_NAME
+        )
+
+        # CloudFront requires the certificate in us-east-1; this stack is
+        # already deployed there, so no cross-region setup is needed.
+        certificate = acm.Certificate(
+            self,
+            "SiteCertificate",
+            domain_name=DOMAIN_NAME,
+            subject_alternative_names=[WWW_DOMAIN_NAME],
+            validation=acm.CertificateValidation.from_dns(hosted_zone),
+        )
+
         distribution = cloudfront.Distribution(
             self,
             "SiteDistribution",
             default_root_object="index.html",
+            domain_names=[DOMAIN_NAME, WWW_DOMAIN_NAME],
+            certificate=certificate,
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3BucketOrigin.with_origin_access_control(site_bucket),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -72,7 +100,30 @@ class InfraStack(Stack):
             ],
         )
 
-        site_origin = f"https://{distribution.distribution_domain_name}"
+        cf_target = route53.RecordTarget.from_alias(route53_targets.CloudFrontTarget(distribution))
+        route53.ARecord(
+            self, "ApexAliasRecord", zone=hosted_zone, target=cf_target
+        )
+        route53.AaaaRecord(
+            self, "ApexAliasRecordV6", zone=hosted_zone, target=cf_target
+        )
+        route53.ARecord(
+            self,
+            "WwwAliasRecord",
+            zone=hosted_zone,
+            record_name=WWW_DOMAIN_NAME,
+            target=cf_target,
+        )
+        route53.AaaaRecord(
+            self,
+            "WwwAliasRecordV6",
+            zone=hosted_zone,
+            record_name=WWW_DOMAIN_NAME,
+            target=cf_target,
+        )
+
+        site_origin = f"https://{DOMAIN_NAME}"
+        cloudfront_default_origin = f"https://{distribution.distribution_domain_name}"
 
         contact_fn = lambda_.Function(
             self,
@@ -97,7 +148,12 @@ class InfraStack(Stack):
             self,
             "ContactApi",
             cors_preflight=apigwv2.CorsPreflightOptions(
-                allow_origins=[site_origin, *LOCAL_DEV_ORIGINS],
+                allow_origins=[
+                    site_origin,
+                    f"https://{WWW_DOMAIN_NAME}",
+                    cloudfront_default_origin,
+                    *LOCAL_DEV_ORIGINS,
+                ],
                 allow_methods=[apigwv2.CorsHttpMethod.POST],
                 allow_headers=["content-type"],
             ),
@@ -163,5 +219,6 @@ class InfraStack(Stack):
         CfnOutput(self, "SiteBucketName", value=site_bucket.bucket_name)
         CfnOutput(self, "DistributionId", value=distribution.distribution_id)
         CfnOutput(self, "SiteUrl", value=site_origin)
+        CfnOutput(self, "CloudFrontDefaultUrl", value=cloudfront_default_origin)
         CfnOutput(self, "ContactApiUrl", value=f"{http_api.api_endpoint}/contact")
         CfnOutput(self, "GithubActionsRoleArn", value=deploy_role.role_arn)
