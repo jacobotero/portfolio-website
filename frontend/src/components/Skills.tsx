@@ -1,13 +1,7 @@
 import awsBadge from '../assets/aws-saa-badge.png'
 import googleAiBadge from '../assets/google-ai-badge.png'
+import { SkillsCode } from './SkillsCode'
 import { TerminalHeading } from './TerminalHeading'
-
-const SKILL_GROUPS: { label: string; items: string[] }[] = [
-  { label: 'languages', items: ['Python', 'TypeScript', 'JavaScript', 'SQL'] },
-  { label: 'cloud / infra', items: ['AWS', 'CDK', 'Lambda', 'S3', 'CloudFront', 'Docker'] },
-  { label: 'web', items: ['React', 'Vite', 'Node.js', 'Tailwind CSS'] },
-  { label: 'currently learning', items: ['AI / ML', 'System Design'] },
-]
 
 interface Certification {
   badge: string
@@ -41,24 +35,8 @@ export function Skills() {
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="ls -la skills/" title="Skills" />
 
-        <div className="grid sm:grid-cols-2 gap-x-10 gap-y-8 mb-12">
-          {SKILL_GROUPS.map((group) => (
-            <div key={group.label}>
-              <p className="text-xs uppercase tracking-widest text-text-dim mb-3">
-                {group.label}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {group.items.map((item) => (
-                  <span
-                    key={item}
-                    className="px-3 py-1 text-sm border border-border text-text hover:border-accent-dim hover:text-accent transition-colors"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="mb-12">
+          <SkillsCode />
         </div>
 
         <div className="pt-10 mt-2 border-t border-border">
