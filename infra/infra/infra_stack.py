@@ -34,6 +34,8 @@ CONTACT_FROM_EMAIL = CONTACT_TO_EMAIL
 
 LOCAL_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5184"]
 
+GITHUB_REPO = "jacobotero/portfolio-website"
+
 
 class InfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -104,7 +106,58 @@ class InfraStack(Stack):
             ),
         )
 
+        # GitHub Actions deploys via OIDC federation instead of long-lived
+        # access keys: CI assumes this role using a short-lived web identity
+        # token, scoped to this one repo.
+        github_provider = iam.OpenIdConnectProvider(
+            self,
+            "GithubOidcProvider",
+            url="https://token.actions.githubusercontent.com",
+            client_ids=["sts.amazonaws.com"],
+        )
+
+        deploy_role = iam.Role(
+            self,
+            "GithubActionsDeployRole",
+            assumed_by=iam.WebIdentityPrincipal(
+                github_provider.open_id_connect_provider_arn,
+                conditions={
+                    "StringEquals": {
+                        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                    },
+                    "StringLike": {
+                        "token.actions.githubusercontent.com:sub": f"repo:{GITHUB_REPO}:*",
+                    },
+                },
+            ),
+            description="Assumed by GitHub Actions to deploy the portfolio site",
+        )
+
+        site_bucket.grant_read_write(deploy_role)
+        site_bucket.grant_delete(deploy_role)
+        deploy_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=["cloudfront:CreateInvalidation"],
+                resources=[distribution.distribution_arn],
+            )
+        )
+        # Needed only for the infra workflow's `cdk deploy` — it assumes the
+        # CDK bootstrap roles rather than acting on resources directly.
+        deploy_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=["sts:AssumeRole"],
+                resources=[f"arn:aws:iam::{self.account}:role/cdk-*-{self.account}-{self.region}"],
+            )
+        )
+        deploy_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=["ssm:GetParameter"],
+                resources=[f"arn:aws:ssm:{self.region}:{self.account}:parameter/cdk-bootstrap/*"],
+            )
+        )
+
         CfnOutput(self, "SiteBucketName", value=site_bucket.bucket_name)
         CfnOutput(self, "DistributionId", value=distribution.distribution_id)
         CfnOutput(self, "SiteUrl", value=site_origin)
         CfnOutput(self, "ContactApiUrl", value=f"{http_api.api_endpoint}/contact")
+        CfnOutput(self, "GithubActionsRoleArn", value=deploy_role.role_arn)
