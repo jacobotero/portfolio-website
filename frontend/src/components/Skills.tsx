@@ -1,3 +1,4 @@
+import awsBadge from '../assets/aws-saa-badge.png'
 import { TerminalHeading } from './TerminalHeading'
 
 const SKILL_GROUPS: { label: string; items: string[] }[] = [
@@ -33,8 +34,14 @@ export function Skills() {
           ))}
         </div>
 
-        <div className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-start gap-4">
-          <span className="text-accent text-lg leading-none mt-0.5">▸</span>
+        <div className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-center gap-5">
+          <img
+            src={awsBadge}
+            alt="AWS Certified Solutions Architect — Associate badge"
+            className="w-16 sm:w-20 shrink-0 drop-shadow-[0_4px_16px_rgba(57,217,138,0.15)]"
+            width={447}
+            height={447}
+          />
           <div>
             <p className="text-heading font-medium">
               AWS Certified Solutions Architect — Associate
