@@ -19,6 +19,7 @@ infra/**/__pycache__/
 # Editor / OS
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
 
