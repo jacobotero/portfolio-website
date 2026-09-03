@@ -34,7 +34,11 @@ CONTACT_FROM_EMAIL = CONTACT_TO_EMAIL
 
 LOCAL_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5184"]
 
-GITHUB_REPO = "jacobotero/portfolio-website"
+# GitHub's OIDC "sub" claim embeds the numeric owner/repo IDs
+# (repo:<owner>@<ownerId>/<repo>@<repoId>:...) rather than plain names, as an
+# anti-hijack measure against renames. Confirmed via a real failed
+# AssumeRoleWithWebIdentity call in CloudTrail before this was fixed.
+GITHUB_REPO_SUBJECT_PREFIX = "repo:jacobotero@145607571/portfolio-website@1355388222:"
 
 
 class InfraStack(Stack):
@@ -126,7 +130,7 @@ class InfraStack(Stack):
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
                     },
                     "StringLike": {
-                        "token.actions.githubusercontent.com:sub": f"repo:{GITHUB_REPO}:*",
+                        "token.actions.githubusercontent.com:sub": f"{GITHUB_REPO_SUBJECT_PREFIX}*",
                     },
                 },
             ),
