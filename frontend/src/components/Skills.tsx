@@ -59,23 +59,28 @@ export function Skills() {
           ))}
         </div>
 
-        <div className="space-y-4">
-          {CERTIFICATIONS.map((cert) => (
-            <div
-              key={cert.title}
-              className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-center gap-5"
-            >
-              <img
-                src={cert.badge}
-                alt={cert.alt}
-                className="w-16 sm:w-20 shrink-0 drop-shadow-[0_4px_16px_rgba(57,217,138,0.15)]"
-              />
-              <div>
-                <p className="text-heading font-medium">{cert.title}</p>
-                <p className="text-sm text-text-dim mt-1">{cert.description}</p>
+        <div className="pt-10 mt-2 border-t border-border">
+          <p className="text-xs uppercase tracking-widest text-text-dim mb-4">
+            certifications
+          </p>
+          <div className="space-y-4">
+            {CERTIFICATIONS.map((cert) => (
+              <div
+                key={cert.title}
+                className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-center gap-5"
+              >
+                <img
+                  src={cert.badge}
+                  alt={cert.alt}
+                  className="w-16 sm:w-20 shrink-0 drop-shadow-[0_4px_16px_rgba(57,217,138,0.15)]"
+                />
+                <div>
+                  <p className="text-heading font-medium">{cert.title}</p>
+                  <p className="text-sm text-text-dim mt-1">{cert.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
