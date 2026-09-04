@@ -41,6 +41,24 @@ describe('Nav', () => {
     expect(home).toBeUndefined()
   })
 
+  it('drives active styling from the computed active state, not just router matching', () => {
+    // aria-current comes from NavLink's own matching, independent of the
+    // hand-rolled `active` ternary that decides text color and which link
+    // hosts the sliding pill. This asserts on that ternary's actual output
+    // so a regression to plain `pathname.startsWith(link.to)` (which would
+    // wrongly keep Home "active" on every route) fails here.
+    renderNav('/projects')
+    const projectsLinks = screen.getAllByRole('link', { name: 'Projects' })
+    const homeLinks = screen.getAllByRole('link', { name: 'Home' })
+
+    expect(
+      projectsLinks.some((el) => el.classList.contains('text-heading')),
+    ).toBe(true)
+    expect(
+      homeLinks.some((el) => el.classList.contains('text-heading')),
+    ).toBe(false)
+  })
+
   it('opens and closes the mobile menu', async () => {
     const user = userEvent.setup()
     renderNav()

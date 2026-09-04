@@ -93,7 +93,7 @@ export function Nav() {
             initial={reduceMotion ? false : { opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.18 }}
             className="md:hidden mx-auto max-w-4xl mt-2 rounded-2xl border border-border bg-bg-raised/95 backdrop-blur-md p-2"
           >
             {NAV_LINKS.map((link) => (
