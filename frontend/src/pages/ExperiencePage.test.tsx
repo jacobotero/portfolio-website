@@ -39,4 +39,9 @@ describe('ExperiencePage', () => {
     renderPage()
     expect(screen.getByText(/3 terms/i)).toBeInTheDocument()
   })
+
+  it('sets the document title', () => {
+    renderPage()
+    expect(document.title).toBe('Experience — Jacob Otero')
+  })
 })

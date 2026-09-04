@@ -2,11 +2,19 @@ import { Link, useParams } from 'react-router'
 import { PageHero } from '../components/PageHero'
 import { Reveal } from '../components/Reveal'
 import { getProject } from '../data/projects'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { NotFound } from './NotFound'
 
 export function ProjectDetail() {
   const { slug } = useParams()
   const project = slug ? getProject(slug) : undefined
+  // Called unconditionally, before the early return below, so hook order
+  // stays stable — NotFound sets its own title when actually rendered as
+  // its own route, but ProjectDetail renders it inline for an unknown slug
+  // rather than redirecting, so it needs the same title set here too.
+  useDocumentTitle(
+    project ? `${project.title} — Jacob Otero` : 'Page not found — Jacob Otero',
+  )
 
   if (!project) return <NotFound />
 

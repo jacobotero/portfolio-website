@@ -39,4 +39,9 @@ describe('routing', () => {
     renderAt('/nope')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/not found/i)
   })
+
+  it('sets the document title for an unknown route', () => {
+    renderAt('/nope')
+    expect(document.title).toBe('Page not found — Jacob Otero')
+  })
 })

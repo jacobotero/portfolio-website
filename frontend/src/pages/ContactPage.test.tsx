@@ -94,4 +94,9 @@ describe('ContactPage form', () => {
       /all fields are required/i,
     )
   })
+
+  it('sets the document title', () => {
+    renderPage()
+    expect(document.title).toBe('Contact — Jacob Otero')
+  })
 })

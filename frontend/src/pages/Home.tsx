@@ -6,8 +6,11 @@ import { ProjectCard } from '../components/ProjectCard'
 import { Reveal } from '../components/Reveal'
 import { SkillTabs } from '../components/SkillTabs'
 import { projects } from '../data/projects'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function Home() {
+  useDocumentTitle('Jacob Otero — Software Engineer')
+
   return (
     <>
       <Hero />

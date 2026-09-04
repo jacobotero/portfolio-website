@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { ProjectCard } from '../components/ProjectCard'
 import { PageHero } from '../components/PageHero'
 import { allTech, projects } from '../data/projects'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const ALL = 'All'
 
 export function ProjectsPage() {
+  useDocumentTitle('Projects — Jacob Otero')
   const [filter, setFilter] = useState(ALL)
   const filters = useMemo(() => [ALL, ...allTech()], [])
 

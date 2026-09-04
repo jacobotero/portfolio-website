@@ -59,4 +59,9 @@ describe('Home', () => {
     const links = screen.getAllByRole('link', { name: /resume/i })
     expect(links.some((l) => l.getAttribute('href') === '/resume.pdf')).toBe(true)
   })
+
+  it('sets the document title', () => {
+    renderHome()
+    expect(document.title).toBe('Jacob Otero — Software Engineer')
+  })
 })

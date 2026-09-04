@@ -65,4 +65,9 @@ describe('ProjectsPage', () => {
     expect(flask).toHaveAttribute('aria-pressed', 'true')
     expect(all).toHaveAttribute('aria-pressed', 'false')
   })
+
+  it('sets the document title', () => {
+    renderPage()
+    expect(document.title).toBe('Projects — Jacob Otero')
+  })
 })

@@ -1,7 +1,10 @@
 import { CompanyTimeline } from '../components/CompanyTimeline'
 import { PageHero } from '../components/PageHero'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ExperiencePage() {
+  useDocumentTitle('Experience — Jacob Otero')
+
   return (
     <>
       <PageHero

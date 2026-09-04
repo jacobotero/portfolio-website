@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { PageHero } from '../components/PageHero'
 import { Reveal } from '../components/Reveal'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -13,6 +14,7 @@ const SOCIALS = [
 ]
 
 export function ContactPage() {
+  useDocumentTitle('Contact — Jacob Otero')
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
 
