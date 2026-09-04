@@ -98,14 +98,19 @@ export function ContactPage() {
                 {status === 'submitting' ? 'Sending…' : 'Send message'}
               </button>
 
-              {status === 'success' && (
-                <p className="text-sm text-accent">
-                  ✓ message sent — I'll get back to you soon.
-                </p>
-              )}
-              {status === 'error' && (
-                <p className="text-sm text-red-400">✗ {error}</p>
-              )}
+              {/* Always present so the live region exists in the DOM before
+                  text lands in it — one that appears at the same moment as
+                  its content is frequently not announced. */}
+              <div role="status" aria-live="polite">
+                {status === 'success' && (
+                  <p className="text-sm text-accent">
+                    ✓ message sent — I'll get back to you soon.
+                  </p>
+                )}
+                {status === 'error' && (
+                  <p className="text-sm text-danger">✗ {error}</p>
+                )}
+              </div>
             </form>
           </Reveal>
 

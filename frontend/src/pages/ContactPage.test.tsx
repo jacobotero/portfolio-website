@@ -74,4 +74,24 @@ describe('ContactPage form', () => {
 
     expect(await screen.findByText(/all fields are required/i)).toBeInTheDocument()
   })
+
+  it('has an always-present live region for the submission result', () => {
+    renderPage()
+
+    // Present before any submission, not conjured alongside its text — a
+    // region that appears at the same moment as its content is frequently
+    // not announced by assistive tech.
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+
+  it('announces the error message through the live region', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      /all fields are required/i,
+    )
+  })
 })
