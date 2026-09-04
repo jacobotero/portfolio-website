@@ -1,5 +1,13 @@
 import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
+
+// ThemeProvider's toggleTheme persists to localStorage (FIX D), and jsdom's
+// localStorage isn't reset between tests on its own — without this, one
+// test file's toggle can leak the resulting theme into another file's (or
+// even another test's) ThemeProvider mount.
+afterEach(() => {
+  localStorage.clear()
+})
 
 if (typeof window.matchMedia !== 'function') {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({

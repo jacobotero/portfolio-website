@@ -15,13 +15,23 @@ import { ThemeToggle } from './ThemeToggle'
  * reason (no context) rather than the right one (the guard itself).
  */
 function mockCanvasContext() {
+  // fillStyle is tracked as a history, not just a last-value snapshot, so
+  // tests can tell which theme's color was in effect at each individual
+  // draw call rather than only at the end.
+  const fillStyleHistory: string[] = []
   const ctx = {
     clearRect: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(),
     setTransform: vi.fn(),
-    fillStyle: '',
+    fillStyleHistory,
+    get fillStyle() {
+      return fillStyleHistory.at(-1) ?? ''
+    },
+    set fillStyle(value: string) {
+      fillStyleHistory.push(value)
+    },
   }
   // `HTMLCanvasElement.prototype.getContext` is already a `vi.fn()` from
   // test/setup.ts (a direct property assignment, not a spy), so
@@ -34,6 +44,27 @@ function mockCanvasContext() {
     ctx as unknown as CanvasRenderingContext2D,
   )
   return ctx
+}
+
+/**
+ * Stands in for the real `--c-star` cascade (`:root` for dark, `[data-theme
+ * ="light"]` for light — see index.css), which jsdom never actually applies
+ * since no stylesheet is loaded in tests. Reads `data-theme` off
+ * `document.documentElement` *live*, on every call, exactly like a real
+ * browser's computed style would — so a test can tell whether Starfield's
+ * effect read the DOM attribute before or after ThemeProvider wrote it.
+ */
+function mockThemeAwareComputedStyle() {
+  const TRIPLETS = { dark: '255, 255, 255', light: '90, 80, 120' } as const
+  const original = window.getComputedStyle.bind(window)
+  vi.spyOn(window, 'getComputedStyle').mockImplementation((el, ...rest) => {
+    if (el !== document.documentElement) return original(el, ...rest)
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light'
+    return {
+      getPropertyValue: (prop: string) =>
+        prop === '--c-star' ? TRIPLETS[isLight ? 'light' : 'dark'] : '',
+    } as CSSStyleDeclaration
+  })
 }
 
 /**
@@ -235,5 +266,37 @@ describe('Starfield', () => {
     // accumulation of duplicate listeners across the toggle.
     expect(remove.mock.calls.length).toBeGreaterThanOrEqual(addCallsAfterMount)
     expect(add.mock.calls.length).toBeGreaterThan(addCallsAfterMount)
+  })
+
+  // Regression test for FIX A: ThemeProvider set `data-theme` from a plain
+  // `useEffect`. Passive effects flush child-first, so this descendant's
+  // effect could run and read the *previous* theme's data-theme value —
+  // toggling dark -> light would draw with the dark triplet, silently
+  // painting near-white stars on the light background. ThemeProvider now
+  // writes `data-theme` from a `useLayoutEffect`, which React guarantees
+  // flushes (tree-wide) before any passive effect runs, so by the time
+  // Starfield's effect reads it, it already holds the *new* theme.
+  it('draws with the new theme\'s star color immediately after a toggle, not the stale one', async () => {
+    const ctx = mockCanvasContext()
+    mockCanvasSize(300, 300)
+    mockThemeAwareComputedStyle()
+    setPrefersReducedMotion(true) // one synchronous draw per effect run, no rAF needed
+    const user = userEvent.setup()
+
+    render(
+      <ThemeProvider>
+        <ThemeToggle />
+        <Starfield />
+      </ThemeProvider>,
+    )
+
+    const initialFill = ctx.fillStyleHistory.at(-1)
+    expect(initialFill).toContain('255, 255, 255') // dark is the initial theme
+
+    await user.click(screen.getByRole('button', { name: /theme/i })) // dark -> light
+
+    const fillAfterToggle = ctx.fillStyleHistory.at(-1)
+    expect(fillAfterToggle).toContain('90, 80, 120') // light's triplet, not dark's
+    expect(fillAfterToggle).not.toBe(initialFill)
   })
 })
