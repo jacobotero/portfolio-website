@@ -1,7 +1,7 @@
 import awsBadge from '../assets/aws-saa-badge.png'
 import googleAiBadge from '../assets/google-ai-badge.png'
 import { Reveal } from './Reveal'
-import { SkillsCode } from './SkillsCode'
+import { SkillsIconGrid } from './SkillsIconGrid'
 import { TerminalHeading } from './TerminalHeading'
 
 interface Certification {
@@ -37,7 +37,7 @@ export function Skills() {
         <TerminalHeading command="ls -la skills/" title="Skills" />
 
         <Reveal className="mb-12">
-          <SkillsCode />
+          <SkillsIconGrid />
         </Reveal>
 
         <div className="pt-10 mt-2 border-t border-border">
@@ -49,7 +49,7 @@ export function Skills() {
               <Reveal
                 key={cert.title}
                 delay={i * 100}
-                className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-center gap-5"
+                className="border border-accent-dim bg-accent/5 rounded-2xl px-6 py-5 flex items-center gap-5"
               >
                 <img
                   src={cert.badge}

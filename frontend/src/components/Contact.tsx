@@ -81,14 +81,14 @@ export function Contact() {
                 id="message"
                 name="message"
                 rows={5}
-                className="w-full bg-bg-raised border border-border px-3 py-2 text-sm text-text focus:outline-none focus:border-accent transition-colors resize-none"
+                className="w-full bg-bg-raised border border-border rounded-xl px-3 py-2 text-sm text-text focus:outline-none focus:border-accent transition-colors resize-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={status === 'submitting'}
-              className="px-4 py-2 text-sm border border-accent-dim text-accent hover:bg-accent/10 transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm rounded-full border border-accent-dim text-accent hover:bg-accent/10 transition-colors disabled:opacity-50"
             >
               {status === 'submitting' ? 'sending…' : './send.sh'}
             </button>
@@ -148,7 +148,7 @@ function Field({
         id={id}
         name={name}
         type={type}
-        className="w-full bg-bg-raised border border-border px-3 py-2 text-sm text-text focus:outline-none focus:border-accent transition-colors"
+        className="w-full bg-bg-raised border border-border rounded-xl px-3 py-2 text-sm text-text focus:outline-none focus:border-accent transition-colors"
       />
     </div>
   )

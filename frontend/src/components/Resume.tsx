@@ -12,7 +12,7 @@ export function Resume() {
             <a
               href="/resume.pdf"
               download="Jacob Otero - Resume.pdf"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-accent-dim text-accent hover:bg-accent/10 transition-colors w-fit"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-full border border-accent-dim text-accent hover:bg-accent/10 transition-colors w-fit"
             >
               ↓ download-resume.pdf
             </a>
@@ -20,13 +20,13 @@ export function Resume() {
               href="/resume.pdf"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-border text-text-dim hover:border-text-dim hover:text-heading transition-colors w-fit"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-full border border-border text-text-dim hover:border-text-dim hover:text-heading transition-colors w-fit"
             >
               open in new tab
             </a>
           </div>
 
-          <div className="border border-border bg-bg-raised/40 aspect-[8.5/6] sm:aspect-[8.5/5] w-full overflow-hidden">
+          <div className="border border-border bg-bg-raised/40 rounded-2xl aspect-[8.5/6] sm:aspect-[8.5/5] w-full overflow-hidden">
             <object
               data="/resume.pdf"
               type="application/pdf"

@@ -9,7 +9,7 @@ export function Projects() {
         <TerminalHeading command="ls projects/" title="Projects" />
 
         {projects.length === 0 ? (
-          <Reveal className="border border-dashed border-border px-6 py-10 text-sm text-text-dim">
+          <Reveal className="border border-dashed border-border rounded-2xl px-6 py-10 text-sm text-text-dim">
             <p className="text-accent">ls: projects/: directory empty</p>
             <p className="mt-3 max-w-md">
               Nothing published here yet — projects get added as they're
@@ -33,9 +33,12 @@ export function Projects() {
                   href={project.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="group block border border-border p-5 hover:border-accent-dim transition-colors"
+                  className="group block border border-border rounded-2xl p-6 hover:border-accent-dim transition-colors"
                 >
-                  <p className="text-heading font-medium group-hover:text-accent transition-colors">
+                  <p className="text-xs tracking-widest text-accent">
+                    {String(i + 1).padStart(2, '0')} — {project.category.toUpperCase()}
+                  </p>
+                  <p className="mt-2 text-xl text-heading font-semibold group-hover:text-accent transition-colors">
                     {project.name}
                   </p>
                   <p className="mt-2 text-sm text-text-dim">
@@ -45,7 +48,7 @@ export function Projects() {
                     {project.stack.map((tech) => (
                       <span
                         key={tech}
-                        className="text-xs px-2 py-0.5 border border-border text-text-dim"
+                        className="text-xs px-2 py-0.5 border border-border rounded-full text-text-dim"
                       >
                         {tech}
                       </span>
