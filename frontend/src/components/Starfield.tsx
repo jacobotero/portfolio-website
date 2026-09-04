@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { useReducedMotion } from 'motion/react'
+import { useTheme } from '../hooks/useTheme'
 
 interface Star {
   x: number // normalized 0-1
@@ -39,6 +41,8 @@ function createStars(width: number, height: number): Star[] {
  */
 export function Starfield() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { theme } = useTheme()
+  const reduceMotion = useReducedMotion() ?? false
 
   useEffect(() => {
     const canvasEl = canvasRef.current
@@ -55,10 +59,6 @@ export function Starfield() {
       ctx = null // No canvas support (jsdom, exotic browsers) — draw nothing.
     }
     const context = ctx
-
-    const reduceMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     let stars: Star[] = []
     let width = 0
@@ -78,12 +78,17 @@ export function Starfield() {
     let currentX = 0
     let currentY = 0
 
+    // Read once per effect run (mount, and again whenever `theme` changes)
+    // rather than once per star per frame — `getComputedStyle` is one of the
+    // more expensive DOM reads, and this loop can run for up to 260 stars at
+    // 60fps.
+    const starColorTriplet =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--c-star')
+        .trim() || '255, 255, 255'
+
     function starColor(alpha: number) {
-      const triplet =
-        getComputedStyle(document.documentElement)
-          .getPropertyValue('--c-star')
-          .trim() || '255, 255, 255'
-      return `rgba(${triplet}, ${alpha})`
+      return `rgba(${starColorTriplet}, ${alpha})`
     }
 
     function resize() {
@@ -97,6 +102,12 @@ export function Starfield() {
       canvas.height = Math.round(height * dpr)
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
       stars = createStars(width, height)
+      // Reassigning canvas.width/height above clears the bitmap. Under
+      // normal motion the rAF loop repaints next frame regardless, but under
+      // reduced motion there is no loop — without this the first resize
+      // (mobile URL-bar collapse, a desktop window drag) permanently blanks
+      // the field. Harmless under normal motion: the loop just overwrites it.
+      draw(0)
     }
 
     function draw(time: number) {
@@ -188,7 +199,14 @@ export function Starfield() {
       window.removeEventListener('mousemove', handlePointer)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [])
+    // Re-running on theme change is what lets a reduced-motion visitor's
+    // toggle repaint the (only ever drawn once) static frame in the new
+    // theme's star color instead of leaving stale colors on screen — see the
+    // cached `starColorTriplet` above. The cleanup above fully tears down
+    // this run's rAF loop, listeners, and observer before the next run sets
+    // up its own, so toggling doesn't leak a loop or double-register
+    // anything.
+  }, [theme, reduceMotion])
 
   return (
     <canvas

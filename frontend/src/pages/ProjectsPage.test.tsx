@@ -2,13 +2,18 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { ThemeProvider } from '../context/ThemeProvider'
 import { ProjectsPage } from './ProjectsPage'
 
+// PageHero renders Starfield, which reads the theme via useTheme() — a
+// ThemeProvider ancestor is required.
 function renderPage() {
   return render(
-    <MemoryRouter>
-      <ProjectsPage />
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter>
+        <ProjectsPage />
+      </MemoryRouter>
+    </ThemeProvider>,
   )
 }
 

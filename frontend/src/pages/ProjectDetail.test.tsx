@@ -1,15 +1,20 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { ThemeProvider } from '../context/ThemeProvider'
 import { ProjectDetail } from './ProjectDetail'
 
+// PageHero renders Starfield, which reads the theme via useTheme() — a
+// ThemeProvider ancestor is required.
 function renderAt(slug: string) {
   return render(
-    <MemoryRouter initialEntries={[`/projects/${slug}`]}>
-      <Routes>
-        <Route path="/projects/:slug" element={<ProjectDetail />} />
-      </Routes>
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[`/projects/${slug}`]}>
+        <Routes>
+          <Route path="/projects/:slug" element={<ProjectDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ThemeProvider>,
   )
 }
 

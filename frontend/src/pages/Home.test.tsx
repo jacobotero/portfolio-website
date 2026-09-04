@@ -1,13 +1,18 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { ThemeProvider } from '../context/ThemeProvider'
 import { Home } from './Home'
 
+// Hero renders Starfield, which reads the theme via useTheme() — a
+// ThemeProvider ancestor is required.
 function renderHome() {
   return render(
-    <MemoryRouter>
-      <Home />
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
+    </ThemeProvider>,
   )
 }
 

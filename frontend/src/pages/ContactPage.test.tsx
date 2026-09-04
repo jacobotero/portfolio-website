@@ -1,12 +1,23 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { ThemeProvider } from '../context/ThemeProvider'
 import { ContactPage } from './ContactPage'
+
+// PageHero renders Starfield, which reads the theme via useTheme() — a
+// ThemeProvider ancestor is required.
+function renderPage() {
+  return render(
+    <ThemeProvider>
+      <ContactPage />
+    </ThemeProvider>,
+  )
+}
 
 describe('ContactPage form', () => {
   it('rejects submission when required fields are empty', async () => {
     const user = userEvent.setup()
-    render(<ContactPage />)
+    renderPage()
 
     await user.click(screen.getByRole('button', { name: /send/i }))
 
@@ -15,7 +26,7 @@ describe('ContactPage form', () => {
 
   it('rejects an invalid email address', async () => {
     const user = userEvent.setup()
-    render(<ContactPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/name/i), 'Jacob')
     await user.type(screen.getByLabelText(/email/i), 'not-an-email')
@@ -29,7 +40,7 @@ describe('ContactPage form', () => {
 
   it('accepts valid input and attempts to submit', async () => {
     const user = userEvent.setup()
-    render(<ContactPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/name/i), 'Jacob')
     await user.type(screen.getByLabelText(/email/i), 'jacob@example.com')
@@ -45,7 +56,7 @@ describe('ContactPage form', () => {
 
   it('rejects an invalid email address', async () => {
     const user = userEvent.setup()
-    render(<ContactPage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/name/i), 'Jacob')
     await user.type(screen.getByLabelText(/email/i), 'not-an-email')
@@ -57,7 +68,7 @@ describe('ContactPage form', () => {
 
   it('rejects empty fields', async () => {
     const user = userEvent.setup()
-    render(<ContactPage />)
+    renderPage()
 
     await user.click(screen.getByRole('button', { name: /send/i }))
 
