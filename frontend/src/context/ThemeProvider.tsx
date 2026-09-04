@@ -1,4 +1,11 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import type { ReactNode } from 'react'
 
 export type Theme = 'light' | 'dark'
@@ -32,9 +39,19 @@ function readStoredTheme(): Theme {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(readStoredTheme)
+  // Skips persistence on the effect's first run (mount) so a visitor who
+  // never touches the toggle doesn't get their current OS preference
+  // written to storage — that write would make readStoredTheme() and
+  // index.html's inline bootstrap script both short-circuit on it forever,
+  // permanently defeating the prefers-color-scheme fallback.
+  const isFirstRun = useRef(true)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
+    if (isFirstRun.current) {
+      isFirstRun.current = false
+      return
+    }
     try {
       localStorage.setItem('theme', theme)
     } catch {
