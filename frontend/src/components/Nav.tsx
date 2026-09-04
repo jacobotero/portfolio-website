@@ -1,103 +1,122 @@
 import { useState } from 'react'
-import { useActiveSection } from '../hooks/useActiveSection'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { Link, NavLink, useLocation } from 'react-router'
+import { ThemeToggle } from './ThemeToggle'
 
-const LINKS = [
-  { href: '#about', id: 'about', label: 'about' },
-  { href: '#experience', id: 'experience', label: 'experience' },
-  { href: '#skills', id: 'skills', label: 'skills' },
-  { href: '#projects', id: 'projects', label: 'projects' },
-  { href: '#resume', id: 'resume', label: 'resume' },
-  { href: '#contact', id: 'contact', label: 'contact' },
+export const NAV_LINKS = [
+  { label: 'Home', to: '/' },
+  { label: 'Projects', to: '/projects' },
+  { label: 'Experience', to: '/experience' },
+  { label: 'Contact', to: '/contact' },
 ]
 
 export function Nav() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const activeSection = useActiveSection()
+  const [open, setOpen] = useState(false)
+  const reduceMotion = useReducedMotion()
+  const { pathname } = useLocation()
 
   return (
-    <header className="fixed top-4 inset-x-0 z-40 flex justify-center px-4">
-      <nav className="relative flex items-center gap-1 pl-3 pr-2 py-2 rounded-full border border-border bg-bg/85 backdrop-blur-sm shadow-lg shadow-black/30 max-w-full">
-        <a
-          href="#top"
-          aria-label="Back to top"
-          className="flex items-center gap-1.5 px-2 shrink-0 group"
+    <header className="fixed top-4 inset-x-0 z-40 px-4">
+      <nav className="mx-auto max-w-4xl rounded-full border border-border bg-bg-raised/80 backdrop-blur-md px-4 sm:px-5 h-14 flex items-center justify-between">
+        <Link
+          to="/"
+          className="font-display font-bold text-heading tracking-tight hover:text-accent transition-colors"
         >
-          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-red-400/70 transition-colors" />
-          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-yellow-400/70 transition-colors" />
-          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-accent/70 transition-colors" />
-        </a>
+          Jacob Otero
+        </Link>
 
-        <ul className="hidden sm:flex items-center gap-1 text-sm">
-          {LINKS.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className={`block px-3 py-1.5 rounded-full transition-colors ${
-                  activeSection === link.id
-                    ? 'bg-accent text-bg font-medium'
-                    : 'text-text-dim hover:text-accent'
-                }`}
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-nav-menu"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          className="sm:hidden p-2 text-text-dim hover:text-accent transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-5 h-5"
-          >
-            {menuOpen ? (
-              <>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </>
-            ) : (
-              <>
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </>
-            )}
-          </svg>
-        </button>
-
-        {menuOpen && (
-          <ul
-            id="mobile-nav-menu"
-            className="sm:hidden absolute top-full mt-2 left-0 right-0 border border-border bg-bg rounded-2xl px-6 py-4 space-y-3 text-sm shadow-xl"
-          >
-            {LINKS.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`block transition-colors ${
-                    activeSection === link.id ? 'text-accent' : 'text-text-dim hover:text-accent'
+        <ul className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((link) => {
+            const active =
+              link.to === '/' ? pathname === '/' : pathname.startsWith(link.to)
+            return (
+              <li key={link.to} className="relative">
+                <NavLink
+                  to={link.to}
+                  end={link.to === '/'}
+                  className={`relative z-10 block px-3.5 py-1.5 text-sm rounded-full transition-colors ${
+                    active
+                      ? 'text-heading'
+                      : 'text-text-dim hover:text-heading'
                   }`}
                 >
                   {link.label}
-                </a>
+                </NavLink>
+                {active && (
+                  <motion.span
+                    layoutId="nav-active-pill"
+                    className="absolute inset-0 rounded-full bg-bg-elevated"
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 350, damping: 30 }
+                    }
+                  />
+                )}
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full text-text-dim hover:text-accent hover:bg-bg-elevated transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              className="w-4 h-4"
+              aria-hidden="true"
+            >
+              {open ? (
+                <path d="M18 6 6 18M6 6l12 12" />
+              ) : (
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={reduceMotion ? false : { opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="md:hidden mx-auto max-w-4xl mt-2 rounded-2xl border border-border bg-bg-raised/95 backdrop-blur-md p-2"
+          >
+            {NAV_LINKS.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  end={link.to === '/'}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 text-sm rounded-xl transition-colors ${
+                      isActive
+                        ? 'text-heading bg-bg-elevated'
+                        : 'text-text-dim hover:text-heading hover:bg-bg-elevated'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
               </li>
             ))}
-          </ul>
+          </motion.ul>
         )}
-      </nav>
+      </AnimatePresence>
     </header>
   )
 }
