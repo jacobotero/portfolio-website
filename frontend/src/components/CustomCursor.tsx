@@ -1,9 +1,16 @@
 import { useEffect, useRef } from 'react'
 
+const INTERACTIVE_SELECTOR = 'a, button, input, textarea'
+const RING_PADDING = 6
+
 /**
- * A trailing cursor ring + dot, desktop-pointer only. Disabled on touch
- * devices and when the visitor prefers reduced motion — both cases where a
- * custom cursor is either meaningless or unwanted.
+ * A trailing cursor dot + a ring that magnetically snaps to trace the exact
+ * shape of whatever interactive element it's hovering (buttons, nav pills,
+ * cards) — reading the element's own border-radius so it always matches,
+ * rather than just growing into a fixed circle.
+ *
+ * Desktop-pointer only: disabled on touch devices and when the visitor
+ * prefers reduced motion.
  */
 export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null)
@@ -23,8 +30,15 @@ export function CustomCursor() {
 
     let mouseX = window.innerWidth / 2
     let mouseY = window.innerHeight / 2
-    let ringX = mouseX
-    let ringY = mouseY
+
+    // Current (eased) ring box, and where it's heading toward.
+    let ringLeft = mouseX - 16
+    let ringTop = mouseY - 16
+    let ringW = 32
+    let ringH = 32
+
+    let locked = false
+    let targetRect = { x: mouseX - 16, y: mouseY - 16, w: 32, h: 32 }
 
     function handleMove(e: MouseEvent) {
       mouseX = e.clientX
@@ -36,26 +50,50 @@ export function CustomCursor() {
     }
 
     function handleOver(e: MouseEvent) {
-      const target = e.target as HTMLElement
-      if (target.closest('a, button, input, textarea')) {
-        ringRef.current?.classList.add('cursor-hover')
+      const target = (e.target as HTMLElement).closest(INTERACTIVE_SELECTOR)
+      if (!target || !ringRef.current || !dotRef.current) return
+
+      const rect = target.getBoundingClientRect()
+      targetRect = {
+        x: rect.left - RING_PADDING,
+        y: rect.top - RING_PADDING,
+        w: rect.width + RING_PADDING * 2,
+        h: rect.height + RING_PADDING * 2,
       }
+      const radius = window.getComputedStyle(target).borderRadius
+      ringRef.current.style.borderRadius = radius && radius !== '0px' ? radius : '10px'
+      ringRef.current.classList.add('cursor-locked')
+      dotRef.current.style.opacity = '0'
+      locked = true
     }
 
     function handleOut(e: MouseEvent) {
-      const target = e.target as HTMLElement
-      if (target.closest('a, button, input, textarea')) {
-        ringRef.current?.classList.remove('cursor-hover')
-      }
+      const target = (e.target as HTMLElement).closest(INTERACTIVE_SELECTOR)
+      if (!target || !ringRef.current || !dotRef.current) return
+
+      locked = false
+      ringRef.current.style.borderRadius = '50%'
+      ringRef.current.classList.remove('cursor-locked')
+      dotRef.current.style.opacity = '1'
     }
 
     let raf: number
     function animate() {
-      ringX += (mouseX - ringX) * 0.15
-      ringY += (mouseY - ringY) * 0.15
+      const ease = locked ? 0.22 : 0.15
+      const target = locked
+        ? targetRect
+        : { x: mouseX - 16, y: mouseY - 16, w: 32, h: 32 }
+
+      ringLeft += (target.x - ringLeft) * ease
+      ringTop += (target.y - ringTop) * ease
+      ringW += (target.w - ringW) * ease
+      ringH += (target.h - ringH) * ease
+
       if (ringRef.current) {
-        ringRef.current.style.left = `${ringX}px`
-        ringRef.current.style.top = `${ringY}px`
+        ringRef.current.style.left = `${ringLeft}px`
+        ringRef.current.style.top = `${ringTop}px`
+        ringRef.current.style.width = `${ringW}px`
+        ringRef.current.style.height = `${ringH}px`
       }
       raf = requestAnimationFrame(animate)
     }
