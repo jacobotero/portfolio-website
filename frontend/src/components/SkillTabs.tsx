@@ -100,15 +100,18 @@ export function SkillTabs() {
 
   return (
     <div>
-      <div role="tablist" className="flex flex-wrap justify-center gap-1 mb-8">
+      <div
+        role="group"
+        aria-label="Skill categories"
+        className="flex flex-wrap justify-center gap-1 mb-8"
+      >
         {SKILL_GROUPS.map((item, i) => {
           const selected = i === active
           return (
             <button
               key={item.label}
               type="button"
-              role="tab"
-              aria-selected={selected}
+              aria-pressed={selected}
               onClick={() => setActive(i)}
               className={`relative px-3.5 py-1.5 text-sm rounded-full transition-colors ${
                 selected ? 'text-heading' : 'text-text-dim hover:text-heading'
