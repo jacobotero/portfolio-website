@@ -67,6 +67,7 @@ export const projects: Project[] = [
         { layer: 'Billing', tech: 'Stripe checkout and subscription webhooks' },
         { layer: 'Email', tech: 'Resend, node-cron' },
         { layer: 'Monitoring', tech: 'Sentry' },
+        { layer: 'Containerization', tech: 'Docker' },
         { layer: 'Deployment', tech: 'Vercel and Railway' },
       ],
     },
@@ -163,7 +164,7 @@ export const projects: Project[] = [
     tagline: 'AI-powered resume-to-job-description match scoring',
     description:
       'Upload a resume and a job description and get a compatibility score plus specific feedback on what is strong, what is missing, and which keywords and skills would improve alignment.',
-    tech: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Node.js', 'Supabase'],
+    tech: ['Next.js', 'React', 'TypeScript', 'OpenAI', 'Tailwind CSS', 'Node.js', 'Supabase'],
     highlights: [
       'Scores resume-to-posting fit using semantic similarity, keyword density, and contextual relevance',
       'Surfaces missing keywords and skills as actionable feedback rather than just a number',
