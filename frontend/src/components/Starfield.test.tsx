@@ -25,6 +25,12 @@ function mockCanvasContext() {
     arc: vi.fn(),
     fill: vi.fn(),
     setTransform: vi.fn(),
+    // Used only by the shooting star, which draws a gradient-stroked line
+    // rather than an arc.
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
     fillStyleHistory,
     get fillStyle() {
       return fillStyleHistory.at(-1) ?? ''
@@ -32,6 +38,9 @@ function mockCanvasContext() {
     set fillStyle(value: string) {
       fillStyleHistory.push(value)
     },
+    strokeStyle: '' as unknown,
+    lineWidth: 0,
+    lineCap: '' as CanvasLineCap,
   }
   // `HTMLCanvasElement.prototype.getContext` is already a `vi.fn()` from
   // test/setup.ts (a direct property assignment, not a spy), so
@@ -130,6 +139,33 @@ function mockIntersectionObserver() {
 function setPrefersReducedMotion(value: boolean) {
   hasReducedMotionListener.current = true
   prefersReducedMotion.current = value
+}
+
+/**
+ * Replaces requestAnimationFrame with a manual driver so a test can step the
+ * loop to chosen timestamps rather than waiting on real frames. Returns a
+ * `tick(time)` that runs whichever callback is currently pending; the loop
+ * re-registers itself on each frame, so repeated ticks keep it going.
+ */
+function captureFrameDriver() {
+  let pending: FrameRequestCallback | null = null
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+    pending = cb
+    return 1
+  })
+  return function tick(time: number) {
+    const cb = pending
+    pending = null
+    cb?.(time)
+  }
+}
+
+/** Every (x, y) a frame passed to ctx.arc(), rounded, for comparison. */
+function positionsFrom(ctx: { arc: ReturnType<typeof vi.fn> }) {
+  return ctx.arc.mock.calls.map(
+    (call: unknown[]) =>
+      `${Math.round(call[0] as number)},${Math.round(call[1] as number)}`,
+  )
 }
 
 // Starfield reads the theme via useTheme(), which throws without a
@@ -298,5 +334,89 @@ describe('Starfield', () => {
     const fillAfterToggle = ctx.fillStyleHistory.at(-1)
     expect(fillAfterToggle).toContain('90, 80, 120') // light's triplet, not dark's
     expect(fillAfterToggle).not.toBe(initialFill)
+  })
+
+  it('rotates the field, so star positions move over time', () => {
+    // Pin Math.random so every star is generated identically. Without this
+    // the assertion passes for the wrong reason: stars whose twinkle dips
+    // under the skip threshold aren't drawn at all, so the set of arc() calls
+    // differs frame to frame even with rotation switched off entirely.
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+
+    // resize() paints one frame directly before the loop starts, so clear
+    // first or this frame's positions get concatenated with that one.
+    ctx.arc.mockClear()
+    tick(1_000)
+    const firstFrame = positionsFrom(ctx)
+
+    ctx.arc.mockClear()
+    // 60s into a 240s revolution, i.e. a quarter turn.
+    tick(61_000)
+    const laterFrame = positionsFrom(ctx)
+
+    expect(firstFrame.length).toBeGreaterThan(0)
+    expect(laterFrame).toHaveLength(firstFrame.length)
+    expect(laterFrame).not.toEqual(firstFrame)
+  })
+
+  it('completes a full twinkle cycle within a few seconds', () => {
+    // Pinned so the star's twinkle period is deterministic: speed becomes
+    // 1.05 + 0.5 * 2.09 = 2.095 rad/s, a ~3.0s cycle.
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+
+    for (let time = 0; time <= 3_000; time += 200) {
+      tick(time)
+    }
+
+    const alphas = ctx.fillStyleHistory
+      .map((fill) => Number(fill.match(/,\s*([\d.]+)\)$/)?.[1] ?? NaN))
+      .filter((alpha) => Number.isFinite(alpha))
+
+    expect(alphas.length).toBeGreaterThan(0)
+    // A full cycle inside the 3s window sweeps the star's entire range. The
+    // previous formula's speed (0.4 + rand*0.8, a 5-16s period) could only
+    // traverse part of its range in 3s, which is exactly why the field read
+    // as motionless. This range check is what separates the two.
+    const swing = Math.max(...alphas) - Math.min(...alphas)
+    expect(swing).toBeGreaterThan(0.25)
+  })
+
+  it('sends a shooting star across after the spawn gap elapses', () => {
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+
+    // The first frame only schedules the next spawn; it never spawns on it.
+    tick(0)
+    expect(ctx.stroke).not.toHaveBeenCalled()
+
+    // Well past the 8-15s spawn window.
+    tick(20_000)
+    expect(ctx.stroke).toHaveBeenCalled()
+    expect(ctx.createLinearGradient).toHaveBeenCalled()
+  })
+
+  it('draws no shooting star under reduced motion', () => {
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    setPrefersReducedMotion(true)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+    tick(20_000)
+
+    expect(ctx.stroke).not.toHaveBeenCalled()
   })
 })

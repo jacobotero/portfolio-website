@@ -3,31 +3,68 @@ import { useReducedMotion } from 'motion/react'
 import { useTheme } from '../hooks/useTheme'
 
 interface Star {
-  x: number // normalized 0-1
-  y: number // normalized 0-1
-  r: number // radius in CSS px
-  alpha: number // base alpha
-  phase: number // twinkle offset
-  speed: number // twinkle rate
-  depth: number // 0-1, drives parallax strength
+  /** Distance from the rotation centre, 0-1 of the canvas half-diagonal. */
+  radius: number
+  /** Starting angle in radians; rotation is added to this each frame. */
+  angle: number
+  /** Dot radius in CSS px. */
+  size: number
+  /** Peak alpha, before twinkle and cursor glow. */
+  alpha: number
+  /** Twinkle wave offset, so the field never pulses in unison. */
+  phase: number
+  /** Twinkle rate; 1.05-3.14 gives a 2-6 second period. */
+  speed: number
+  /** How much of `alpha` the twinkle swings through. At 1 the star fades
+      out completely; at 0.35 it only dims. Varying this per star is what
+      keeps the sky from looking like a single blinking pattern. */
+  twinkleDepth: number
+  /** 0-1, drives how far the star shifts with the pointer. */
+  depth: number
+}
+
+interface ShootingStar {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  /** Frames elapsed, against `maxLife`. */
+  life: number
+  maxLife: number
+  length: number
 }
 
 const MAX_STARS = 260
-const DRIFT_PER_FRAME = 0.006 // px, a pan measured in minutes
+
+/** Milliseconds for one full revolution of the field. Lower is faster. */
+const ROTATION_PERIOD_MS = 240_000
+
 const PARALLAX_PX = 12
 const PARALLAX_EASE = 0.06
+
+/** Stars within this many px of the pointer brighten. */
+const GLOW_RADIUS = 140
+const GLOW_BOOST = 0.65
+
+const SHOOTING_MIN_GAP_MS = 8_000
+const SHOOTING_MAX_GAP_MS = 15_000
+const SHOOTING_SPEED = 9
+const SHOOTING_LIFE_FRAMES = 55
 
 function createStars(width: number, height: number): Star[] {
   const count = Math.min(MAX_STARS, Math.round((width * height) / 6000))
   const stars: Star[] = []
   for (let i = 0; i < count; i += 1) {
     stars.push({
-      x: Math.random(),
-      y: Math.random(),
-      r: 0.4 + Math.random(),
+      // sqrt() keeps the distribution uniform by area rather than crowding
+      // the centre, which is what a plain uniform radius would do.
+      radius: Math.sqrt(Math.random()),
+      angle: Math.random() * Math.PI * 2,
+      size: 0.4 + Math.random(),
       alpha: 0.15 + Math.random() * 0.75,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.4 + Math.random() * 0.8,
+      speed: 1.05 + Math.random() * 2.09,
+      twinkleDepth: 0.35 + Math.random() * 0.65,
       depth: Math.random(),
     })
   }
@@ -35,9 +72,12 @@ function createStars(width: number, height: number): Star[] {
 }
 
 /**
- * Star canvas scoped to the hero band it sits in — not the viewport. It stops
- * animating when scrolled out of view or when the tab is hidden, and draws a
- * single static frame under prefers-reduced-motion.
+ * Star canvas scoped to the hero band it sits in, not the viewport. The field
+ * rotates slowly, each star twinkles on its own period, stars near the pointer
+ * brighten, and a shooting star crosses every 8-15 seconds.
+ *
+ * It stops animating when scrolled out of view or when the tab is hidden, and
+ * draws a single static frame under prefers-reduced-motion.
  */
 export function Starfield() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -63,7 +103,7 @@ export function Starfield() {
     let stars: Star[] = []
     let width = 0
     let height = 0
-    let drift = 0
+    let halfDiagonal = 0
     let raf = 0
     let running = false
     // Whether the hero band is currently on screen. Defaults true so the
@@ -77,6 +117,14 @@ export function Starfield() {
     let targetY = 0
     let currentX = 0
     let currentY = 0
+
+    // Pointer position in canvas-local px, for the proximity glow. Starts far
+    // off-canvas so nothing is lit before the pointer has ever been over it.
+    let pointerX = Number.NEGATIVE_INFINITY
+    let pointerY = Number.NEGATIVE_INFINITY
+
+    let shooting: ShootingStar | null = null
+    let nextShootingAt = 0
 
     // Read once per effect run (mount, and again whenever `theme` changes)
     // rather than once per star per frame — `getComputedStyle` is one of the
@@ -97,6 +145,9 @@ export function Starfield() {
       width = rect.width
       height = rect.height
       if (width === 0 || height === 0) return
+      // Stars are laid out on a disc of this radius so that rotating the
+      // field never swings an empty corner into view.
+      halfDiagonal = Math.sqrt(width * width + height * height) / 2
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
@@ -110,29 +161,119 @@ export function Starfield() {
       draw(0)
     }
 
+    function spawnShootingStar() {
+      // Enter from the top edge, travelling down and across. The horizontal
+      // direction is random so it doesn't always sweep the same way.
+      const goingRight = Math.random() < 0.5
+      const angle = (Math.random() * 0.35 + 0.2) * Math.PI // 36-99 degrees
+      shooting = {
+        x: goingRight ? Math.random() * width * 0.4 : width - Math.random() * width * 0.4,
+        y: Math.random() * height * 0.35,
+        vx: (goingRight ? 1 : -1) * Math.cos(angle) * SHOOTING_SPEED,
+        vy: Math.sin(angle) * SHOOTING_SPEED,
+        life: 0,
+        maxLife: SHOOTING_LIFE_FRAMES,
+        length: 60 + Math.random() * 60,
+      }
+    }
+
+    function drawShootingStar() {
+      if (!context || !shooting) return
+      const s = shooting
+      // Fade in over the first fifth of its life, then out across the rest.
+      const t = s.life / s.maxLife
+      const fade = t < 0.2 ? t / 0.2 : 1 - (t - 0.2) / 0.8
+
+      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy) || 1
+      const tailX = s.x - (s.vx / speed) * s.length
+      const tailY = s.y - (s.vy / speed) * s.length
+
+      const gradient = context.createLinearGradient(s.x, s.y, tailX, tailY)
+      gradient.addColorStop(0, starColor(0.9 * fade))
+      gradient.addColorStop(1, starColor(0))
+
+      context.beginPath()
+      context.moveTo(s.x, s.y)
+      context.lineTo(tailX, tailY)
+      context.strokeStyle = gradient
+      context.lineWidth = 1.6
+      context.lineCap = 'round'
+      context.stroke()
+    }
+
     function draw(time: number) {
       if (!context) return
       context.clearRect(0, 0, width, height)
       currentX += (targetX - currentX) * PARALLAX_EASE
       currentY += (targetY - currentY) * PARALLAX_EASE
 
+      const centreX = width / 2
+      const centreY = height / 2
+      // Derive rotation from the timestamp rather than accumulating per frame,
+      // so the speed is the same on a 60Hz and a 144Hz display.
+      const rotation = reduceMotion
+        ? 0
+        : (time / ROTATION_PERIOD_MS) * Math.PI * 2
+
       for (const star of stars) {
-        const twinkle =
-          reduceMotion ? 1 : 0.65 + 0.35 * Math.sin(time * 0.001 * star.speed + star.phase)
-        let x = star.x * width + drift + currentX * star.depth
-        const y = star.y * height + currentY * star.depth
-        // Wrap horizontally so the drift never runs out of sky.
-        x = ((x % width) + width) % width
+        const theta = star.angle + rotation
+        const distance = star.radius * halfDiagonal
+        const x = centreX + Math.cos(theta) * distance + currentX * star.depth
+        const y = centreY + Math.sin(theta) * distance + currentY * star.depth
+
+        let alpha = star.alpha
+        if (!reduceMotion) {
+          const wave =
+            0.5 + 0.5 * Math.sin(time * 0.001 * star.speed + star.phase)
+          alpha *= 1 - star.twinkleDepth + star.twinkleDepth * wave
+
+          // Proximity glow. Squared-distance test first so the sqrt only runs
+          // for the handful of stars actually near the pointer.
+          const dx = pointerX - x
+          const dy = pointerY - y
+          const distanceSq = dx * dx + dy * dy
+          if (distanceSq < GLOW_RADIUS * GLOW_RADIUS) {
+            const falloff = 1 - Math.sqrt(distanceSq) / GLOW_RADIUS
+            alpha = Math.min(1, alpha + falloff * GLOW_BOOST)
+          }
+        }
+
+        if (alpha <= 0.002) continue
 
         context.beginPath()
-        context.arc(x, y, star.r, 0, Math.PI * 2)
-        context.fillStyle = starColor(star.alpha * twinkle)
+        context.arc(x, y, star.size, 0, Math.PI * 2)
+        context.fillStyle = starColor(alpha)
         context.fill()
       }
+
+      drawShootingStar()
     }
 
     function frame(time: number) {
-      drift += DRIFT_PER_FRAME
+      if (nextShootingAt === 0) {
+        nextShootingAt =
+          time +
+          SHOOTING_MIN_GAP_MS +
+          Math.random() * (SHOOTING_MAX_GAP_MS - SHOOTING_MIN_GAP_MS)
+      }
+
+      if (!shooting && time >= nextShootingAt) {
+        spawnShootingStar()
+      }
+
+      if (shooting) {
+        shooting.x += shooting.vx
+        shooting.y += shooting.vy
+        shooting.life += 1
+        if (shooting.life >= shooting.maxLife) {
+          shooting = null
+          nextShootingAt =
+            time +
+            SHOOTING_MIN_GAP_MS +
+            Math.random() * (SHOOTING_MAX_GAP_MS - SHOOTING_MIN_GAP_MS)
+        }
+      }
+
       draw(time)
       raf = window.requestAnimationFrame(frame)
     }
@@ -157,6 +298,13 @@ export function Starfield() {
       const rect = canvas.getBoundingClientRect()
       targetX = ((event.clientX - rect.left) / rect.width - 0.5) * PARALLAX_PX
       targetY = ((event.clientY - rect.top) / rect.height - 0.5) * PARALLAX_PX
+      pointerX = event.clientX - rect.left
+      pointerY = event.clientY - rect.top
+    }
+
+    function handlePointerLeave() {
+      pointerX = Number.NEGATIVE_INFINITY
+      pointerY = Number.NEGATIVE_INFINITY
     }
 
     function handleVisibility() {
@@ -177,6 +325,7 @@ export function Starfield() {
 
     window.addEventListener('resize', resize)
     window.addEventListener('mousemove', handlePointer)
+    document.addEventListener('mouseleave', handlePointerLeave)
     document.addEventListener('visibilitychange', handleVisibility)
 
     let observer: IntersectionObserver | null = null
@@ -197,6 +346,7 @@ export function Starfield() {
       observer?.disconnect()
       window.removeEventListener('resize', resize)
       window.removeEventListener('mousemove', handlePointer)
+      document.removeEventListener('mouseleave', handlePointerLeave)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
     // Re-running on theme change is what lets a reduced-motion visitor's
