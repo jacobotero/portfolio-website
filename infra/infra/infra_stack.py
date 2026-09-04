@@ -91,7 +91,21 @@ class InfraStack(Stack):
                 response_headers_policy=cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
             ),
             # Single-page app: unknown paths fall back to index.html.
+            # Single-page app: unknown paths fall back to index.html so
+            # client-side routes survive a direct hit or a refresh.
+            #
+            # Both codes are required. S3 behind Origin Access Control answers
+            # a missing key with 403 AccessDenied, not 404 — the bucket policy
+            # grants s3:GetObject but not s3:ListBucket, so S3 will not confirm
+            # whether the object exists. Mapping only 404 leaves every deep
+            # link returning an XML AccessDenied page.
             error_responses=[
+                cloudfront.ErrorResponse(
+                    http_status=403,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=Duration.seconds(0),
+                ),
                 cloudfront.ErrorResponse(
                     http_status=404,
                     response_http_status=200,
