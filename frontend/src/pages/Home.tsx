@@ -1,3 +1,5 @@
+import { Hero } from '../components/Hero'
+
 export function Home() {
-  return <h1>Jacob Otero</h1>
+  return <Hero />
 }
