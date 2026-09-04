@@ -14,7 +14,6 @@ export function Layout() {
     <>
       <ScrollToTop />
       <Nav />
-      <SocialSidebar />
       <main>
         <AnimatePresence mode="wait">
           <motion.div
@@ -30,6 +29,7 @@ export function Layout() {
           </motion.div>
         </AnimatePresence>
       </main>
+      <SocialSidebar />
       <BackToTop />
       <Footer />
     </>
