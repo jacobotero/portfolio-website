@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -96,9 +96,15 @@ describe('pageview/title ordering (FIX C)', () => {
 
     await user.click(screen.getAllByRole('link', { name: 'Experience' })[0])
 
-    expect(titlesAtCall).toEqual([
-      'Jacob Otero - Software Engineer',
-      'Experience - Jacob Otero',
-    ])
+    // The pageview now fires when the incoming page mounts, which with
+    // AnimatePresence mode="wait" is after the outgoing page's exit
+    // transition finishes — hence the wait. What matters is unchanged: when
+    // it does fire, document.title is already the new route's.
+    await waitFor(() => {
+      expect(titlesAtCall).toEqual([
+        'Jacob Otero - Software Engineer',
+        'Experience - Jacob Otero',
+      ])
+    })
   })
 })
