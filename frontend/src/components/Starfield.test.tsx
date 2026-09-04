@@ -19,6 +19,13 @@ function mockCanvasContext() {
     setTransform: vi.fn(),
     fillStyle: '',
   }
+  // `HTMLCanvasElement.prototype.getContext` is already a `vi.fn()` from
+  // test/setup.ts (a direct property assignment, not a spy), so
+  // `vi.spyOn(...)` on it returns that same mock reference rather than a
+  // restorable wrapper — `vi.restoreAllMocks()` in afterEach has nothing to
+  // undo and the fake context leaks into later tests. Reassigning the
+  // null-returning stub explicitly in afterEach (below) fixes it, the same
+  // way the `matchMedia` leak was fixed.
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
     ctx as unknown as CanvasRenderingContext2D,
   )
@@ -57,6 +64,10 @@ describe('Starfield', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    // vi.restoreAllMocks() doesn't undo mockCanvasContext()'s override (see
+    // the comment on mockCanvasContext) — explicitly put the null-returning
+    // stub from test/setup.ts back so later tests get a clean null context.
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as never
   })
 
   it('renders without throwing when the 2D context is unavailable', () => {
