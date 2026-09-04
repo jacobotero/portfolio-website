@@ -66,6 +66,10 @@ export function Starfield() {
     let drift = 0
     let raf = 0
     let running = false
+    // Whether the hero band is currently on screen. Defaults true so the
+    // no-IntersectionObserver case still animates; the observer callback
+    // (when one exists) keeps this in sync with real scroll position.
+    let intersecting = true
 
     // Pointer parallax: target is where the mouse says we should be, current
     // eases toward it so the field glides rather than snaps.
@@ -123,7 +127,11 @@ export function Starfield() {
     }
 
     function start() {
-      if (running || reduceMotion || !context) return
+      if (!context || running) return
+      if (reduceMotion) {
+        draw(0) // One static frame — the sky is there, it just doesn't move.
+        return
+      }
       running = true
       raf = window.requestAnimationFrame(frame)
     }
@@ -141,17 +149,19 @@ export function Starfield() {
     }
 
     function handleVisibility() {
-      if (document.hidden) stop()
-      else start()
+      if (document.hidden) {
+        stop()
+      } else if (intersecting) {
+        // Don't resume just because the tab regained focus — the hero may
+        // still be scrolled out of view, and no further observer callback
+        // will fire until intersection actually changes.
+        start()
+      }
     }
 
     if (context) {
       resize()
-      if (reduceMotion) {
-        draw(0) // One static frame — the sky is there, it just doesn't move.
-      } else {
-        start()
-      }
+      start()
     }
 
     window.addEventListener('resize', resize)
@@ -162,7 +172,8 @@ export function Starfield() {
     if (context && typeof IntersectionObserver !== 'undefined' && !reduceMotion) {
       observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) start()
+          intersecting = entry.isIntersecting
+          if (intersecting) start()
           else stop()
         },
         { threshold: 0 },
