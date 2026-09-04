@@ -5,7 +5,7 @@ interface Role {
   title: string
   department: string
   dates: string
-  bullets: string[]
+  summary: string
 }
 
 const COMPANY = 'Mercedes-Benz U.S. International'
@@ -16,28 +16,22 @@ const ROLES: Role[] = [
     title: 'Software Engineering Co-op',
     department: 'Global Service & Parts',
     dates: 'May 2026 – Aug 2026',
-    bullets: [
-      'Engineered end-to-end development of a compliance workflow application used by 18 different business units, cutting average review/approval time from 10 hours/week to 2 hours',
-      'Led a company-wide initiative to make an internal department tool available to international teams, reducing app development time by 14 days per app',
-    ],
+    summary:
+      'Built a compliance workflow tool adopted by 18 business units, cutting review time 80%.',
   },
   {
     title: 'Software Engineering Co-op',
     department: 'Battery Plant',
     dates: 'Aug 2025 – Dec 2025',
-    bullets: [
-      'Identified a gap in real-time production tracking and independently built a full-stack solution now used by hundreds of engineers and operators across the plant',
-      'Created and prototyped 15 custom machine parts using CAD modeling and 3D printing, cutting part turnaround time from 2 hours to 10 minutes',
-    ],
+    summary:
+      'Built a real-time production tracking system now used plant-wide by hundreds of engineers and operators.',
   },
   {
     title: 'Software Engineering Co-op',
     department: 'Global Service & Parts',
     dates: 'Jan 2025 – May 2025',
-    bullets: [
-      'Partnered with the Dangerous Goods department to automate manual documentation steps, cutting errors and audit flags by 40% across global trade operations',
-      'Digitalized a recurring administrative task, saving the department roughly 16 hours per month',
-    ],
+    summary:
+      'Automated dangerous-goods documentation, cutting audit errors 40% across global trade operations.',
   },
 ]
 
@@ -63,17 +57,13 @@ export function Experience() {
               className="border border-border rounded-2xl p-6"
             >
               <p className="text-heading font-medium">{role.title}</p>
-              <p className="text-xs uppercase tracking-widest text-text-dim mt-1 mb-4">
+              <p className="text-xs uppercase tracking-widest text-text-dim mt-1 mb-3">
                 {role.department} · {role.dates}
               </p>
-              <ul className="space-y-2">
-                {role.bullets.map((bullet) => (
-                  <li key={bullet} className="text-sm text-text-dim flex gap-2">
-                    <span className="text-accent shrink-0">&gt;</span>
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-text-dim flex gap-2">
+                <span className="text-accent shrink-0">&gt;</span>
+                <span>{role.summary}</span>
+              </p>
             </Reveal>
           ))}
         </div>
