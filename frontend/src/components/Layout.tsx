@@ -1,7 +1,10 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Outlet, useLocation } from 'react-router'
+import { BackToTop } from './BackToTop'
+import { Footer } from './Footer'
 import { Nav } from './Nav'
 import { ScrollToTop } from './ScrollToTop'
+import { SocialSidebar } from './SocialSidebar'
 
 export function Layout() {
   const { pathname } = useLocation()
@@ -11,6 +14,7 @@ export function Layout() {
     <>
       <ScrollToTop />
       <Nav />
+      <SocialSidebar />
       <main>
         <AnimatePresence mode="wait">
           <motion.div
@@ -26,6 +30,8 @@ export function Layout() {
           </motion.div>
         </AnimatePresence>
       </main>
+      <BackToTop />
+      <Footer />
     </>
   )
 }
