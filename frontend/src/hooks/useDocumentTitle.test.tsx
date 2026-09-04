@@ -15,14 +15,14 @@ function Page({ title, description }: { title: string; description?: string }) {
 
 describe('useDocumentTitle', () => {
   it('sets document.title', () => {
-    render(<Page title="Projects — Jacob Otero" />)
-    expect(document.title).toBe('Projects — Jacob Otero')
+    render(<Page title="Projects - Jacob Otero" />)
+    expect(document.title).toBe('Projects - Jacob Otero')
   })
 
   it('sets the meta description when one is given', () => {
     render(
       <Page
-        title="Projects — Jacob Otero"
+        title="Projects - Jacob Otero"
         description="A showcase of Jacob Otero's work."
       />,
     )

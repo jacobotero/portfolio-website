@@ -4,7 +4,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ExperiencePage() {
   useDocumentTitle(
-    'Experience — Jacob Otero',
+    'Experience - Jacob Otero',
     "Jacob Otero's professional experience in software, AI, and cloud engineering.",
   )
 

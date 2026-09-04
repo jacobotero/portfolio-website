@@ -8,7 +8,7 @@ const ALL = 'All'
 
 export function ProjectsPage() {
   useDocumentTitle(
-    'Projects — Jacob Otero',
+    'Projects - Jacob Otero',
     'A showcase of full-stack and cloud projects by Jacob Otero, spanning React, Node.js, and AWS infrastructure.',
   )
   const [filter, setFilter] = useState(ALL)

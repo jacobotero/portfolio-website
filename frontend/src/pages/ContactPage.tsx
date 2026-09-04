@@ -15,7 +15,7 @@ const SOCIALS = [
 
 export function ContactPage() {
   useDocumentTitle(
-    'Contact — Jacob Otero',
+    'Contact - Jacob Otero',
     'Get in touch with Jacob Otero about full-time software engineering roles.',
   )
   const [status, setStatus] = useState<Status>('idle')
@@ -61,7 +61,7 @@ export function ContactPage() {
       setStatus('success')
       form.reset()
     } catch {
-      setError('message failed to send — try again or email me directly')
+      setError('message failed to send. Try again, or email me directly')
       setStatus('error')
     }
   }
@@ -109,7 +109,7 @@ export function ContactPage() {
               <div role="status" aria-live="polite">
                 {status === 'success' && (
                   <p className="text-sm text-accent">
-                    ✓ message sent — I'll get back to you soon.
+                    ✓ message sent. I'll get back to you soon.
                   </p>
                 )}
                 {status === 'error' && (

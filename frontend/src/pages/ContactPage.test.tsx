@@ -97,6 +97,6 @@ describe('ContactPage form', () => {
 
   it('sets the document title', () => {
     renderPage()
-    expect(document.title).toBe('Contact — Jacob Otero')
+    expect(document.title).toBe('Contact - Jacob Otero')
   })
 })

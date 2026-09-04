@@ -44,7 +44,7 @@ if (!document.querySelector('meta[name="description"]')) {
   meta.setAttribute('name', 'description')
   meta.setAttribute(
     'content',
-    'Jacob Otero — Software Engineer, AI Engineer, Cloud Engineer. CS senior building full-stack products and the AWS infrastructure they run on.',
+    'Jacob Otero - Software Engineer, AI Engineer, Cloud Engineer. CS senior building full-stack products and the AWS infrastructure they run on.',
   )
   document.head.appendChild(meta)
 }

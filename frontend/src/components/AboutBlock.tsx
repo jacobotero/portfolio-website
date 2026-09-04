@@ -21,7 +21,7 @@ export function AboutBlock() {
           <p>
             I like building things end to end: writing the code, designing the
             infrastructure it runs on, and shipping it somewhere real. DonorTrack
-            is the clearest example — a multi-tenant donor management app with
+            is the clearest example: a multi-tenant donor management app with
             Stripe billing and server-side PDF generation, built and deployed on
             my own. This site is another, running on the AWS services I'm
             studying for the Solutions Architect Associate certification.

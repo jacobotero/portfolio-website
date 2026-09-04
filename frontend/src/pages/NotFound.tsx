@@ -3,7 +3,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function NotFound() {
   useDocumentTitle(
-    'Page not found — Jacob Otero',
+    'Page not found - Jacob Otero',
     "The page you're looking for doesn't exist.",
   )
 

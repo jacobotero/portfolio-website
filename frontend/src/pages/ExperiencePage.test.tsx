@@ -42,6 +42,6 @@ describe('ExperiencePage', () => {
 
   it('sets the document title', () => {
     renderPage()
-    expect(document.title).toBe('Experience — Jacob Otero')
+    expect(document.title).toBe('Experience - Jacob Otero')
   })
 })

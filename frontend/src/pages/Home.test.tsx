@@ -62,6 +62,6 @@ describe('Home', () => {
 
   it('sets the document title', () => {
     renderHome()
-    expect(document.title).toBe('Jacob Otero — Software Engineer')
+    expect(document.title).toBe('Jacob Otero - Software Engineer')
   })
 })

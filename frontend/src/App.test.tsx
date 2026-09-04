@@ -44,7 +44,7 @@ describe('routing', () => {
 
   it('sets the document title for an unknown route', () => {
     renderAt('/nope')
-    expect(document.title).toBe('Page not found — Jacob Otero')
+    expect(document.title).toBe('Page not found - Jacob Otero')
   })
 
   // FIX E: every route used to serve index.html's one static description to
@@ -92,13 +92,13 @@ describe('pageview/title ordering (FIX C)', () => {
         </MemoryRouter>
       </ThemeProvider>,
     )
-    expect(titlesAtCall).toEqual(['Jacob Otero — Software Engineer'])
+    expect(titlesAtCall).toEqual(['Jacob Otero - Software Engineer'])
 
     await user.click(screen.getAllByRole('link', { name: 'Experience' })[0])
 
     expect(titlesAtCall).toEqual([
-      'Jacob Otero — Software Engineer',
-      'Experience — Jacob Otero',
+      'Jacob Otero - Software Engineer',
+      'Experience - Jacob Otero',
     ])
   })
 })

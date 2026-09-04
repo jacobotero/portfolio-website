@@ -13,17 +13,17 @@ interface Certification {
 const CERTIFICATIONS: Certification[] = [
   {
     badge: awsBadge,
-    alt: 'AWS Certified Solutions Architect — Associate badge',
-    title: 'AWS Certified Solutions Architect — Associate',
+    alt: 'AWS Certified Solutions Architect - Associate badge',
+    title: 'AWS Certified Solutions Architect - Associate',
     description:
-      "In progress — this site's infrastructure (S3, CloudFront, Lambda, API Gateway) is built with what I'm learning along the way.",
+      "In progress. This site's infrastructure (S3, CloudFront, Lambda, API Gateway) is built with what I'm learning along the way.",
   },
   {
     badge: googleAiBadge,
     alt: 'Google AI Professional Certificate badge',
     title: 'Google AI Professional Certificate',
     description:
-      'Completed — practical coursework on building and applying AI/ML tools.',
+      'Completed. Practical coursework on building and applying AI/ML tools.',
     link: 'https://www.coursera.org/account/accomplishments/professional-cert/certificate/MFQ3BPXDSCLO',
   },
 ]

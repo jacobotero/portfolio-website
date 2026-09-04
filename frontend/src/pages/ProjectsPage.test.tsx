@@ -68,6 +68,6 @@ describe('ProjectsPage', () => {
 
   it('sets the document title', () => {
     renderPage()
-    expect(document.title).toBe('Projects — Jacob Otero')
+    expect(document.title).toBe('Projects - Jacob Otero')
   })
 })

@@ -13,7 +13,7 @@ export function ProjectDetail() {
   // its own route, but ProjectDetail renders it inline for an unknown slug
   // rather than redirecting, so it needs the same title set here too.
   useDocumentTitle(
-    project ? `${project.title} — Jacob Otero` : 'Page not found — Jacob Otero',
+    project ? `${project.title} - Jacob Otero` : 'Page not found - Jacob Otero',
     project ? project.tagline : "The page you're looking for doesn't exist.",
   )
 

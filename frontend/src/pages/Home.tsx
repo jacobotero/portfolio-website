@@ -10,8 +10,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function Home() {
   useDocumentTitle(
-    'Jacob Otero — Software Engineer',
-    'Jacob Otero — Software Engineer, AI Engineer, Cloud Engineer. CS senior building full-stack products and the AWS infrastructure they run on.',
+    'Jacob Otero - Software Engineer',
+    'Jacob Otero - Software Engineer, AI Engineer, Cloud Engineer. CS senior building full-stack products and the AWS infrastructure they run on.',
   )
 
   return (

@@ -61,17 +61,17 @@ describe('ProjectDetail', () => {
 
   it('sets the document title to the project name', () => {
     renderAt('donortrack')
-    expect(document.title).toBe('DonorTrack — Jacob Otero')
+    expect(document.title).toBe('DonorTrack - Jacob Otero')
   })
 
   it('sets the document title to a different project name on a different slug', () => {
     renderAt('fanatiq')
-    expect(document.title).toBe('FanatIQ — Jacob Otero')
+    expect(document.title).toBe('FanatIQ - Jacob Otero')
   })
 
   it('sets the document title to "Page not found" for an unknown slug', () => {
     renderAt('does-not-exist')
-    expect(document.title).toBe('Page not found — Jacob Otero')
+    expect(document.title).toBe('Page not found - Jacob Otero')
   })
 
   it("sets the meta description to the project's own tagline", () => {
