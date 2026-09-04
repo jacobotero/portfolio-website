@@ -1,5 +1,6 @@
 import awsBadge from '../assets/aws-saa-badge.png'
 import googleAiBadge from '../assets/google-ai-badge.png'
+import { Reveal } from './Reveal'
 import { SkillsCode } from './SkillsCode'
 import { TerminalHeading } from './TerminalHeading'
 
@@ -35,18 +36,19 @@ export function Skills() {
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="ls -la skills/" title="Skills" />
 
-        <div className="mb-12">
+        <Reveal className="mb-12">
           <SkillsCode />
-        </div>
+        </Reveal>
 
         <div className="pt-10 mt-2 border-t border-border">
           <p className="text-xs uppercase tracking-widest text-text-dim mb-4">
             certifications
           </p>
           <div className="space-y-4">
-            {CERTIFICATIONS.map((cert) => (
-              <div
+            {CERTIFICATIONS.map((cert, i) => (
+              <Reveal
                 key={cert.title}
+                delay={i * 100}
                 className="border border-accent-dim bg-accent/5 px-6 py-5 flex items-center gap-5"
               >
                 <img
@@ -85,7 +87,7 @@ export function Skills() {
                   </p>
                   <p className="text-sm text-text-dim mt-1">{cert.description}</p>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>

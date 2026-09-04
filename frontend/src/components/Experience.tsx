@@ -1,3 +1,4 @@
+import { Reveal } from './Reveal'
 import { TerminalHeading } from './TerminalHeading'
 
 interface Role {
@@ -32,18 +33,22 @@ export function Experience() {
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="cat experience.log" title="Experience" />
 
-        <div className="mb-6">
+        <Reveal className="mb-6">
           <p className="text-heading font-medium">{COMPANY}</p>
           <p className="text-sm text-text-dim">{LOCATION}</p>
-        </div>
+        </Reveal>
 
         <div className="border-l border-border space-y-6">
-          {ROLES.map((role) => (
-            <div key={role.title + role.dates} className="relative pl-8">
+          {ROLES.map((role, i) => (
+            <Reveal
+              key={role.title + role.dates}
+              delay={i * 100}
+              className="relative pl-8"
+            >
               <span className="absolute left-0 top-1.5 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-accent" />
               <p className="text-heading font-medium">{role.title}</p>
               <p className="text-xs text-text-dim">{role.dates}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from 'react'
+import { Reveal } from './Reveal'
 import { TerminalHeading } from './TerminalHeading'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
@@ -61,7 +62,7 @@ export function Contact() {
       <div className="mx-auto max-w-4xl">
         <TerminalHeading command="./contact.sh" title="Get in touch" />
 
-        <div className="grid md:grid-cols-[1fr_auto] gap-12">
+        <Reveal className="grid md:grid-cols-[1fr_auto] gap-12">
           <form
             onSubmit={handleSubmit}
             noValidate
@@ -121,7 +122,7 @@ export function Contact() {
               ))}
             </ul>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
