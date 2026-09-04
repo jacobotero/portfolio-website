@@ -85,7 +85,7 @@ export const SKILL_GROUPS: SkillGroup[] = [
     ],
   },
   {
-    label: 'AI & Data',
+    label: 'AI & Systems',
     skills: [
       { name: 'AI / ML', path: ICONS.sparkle },
       { name: 'System Design', path: ICONS.layers },
