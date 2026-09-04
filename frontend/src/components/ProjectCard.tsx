@@ -50,18 +50,10 @@ export function ProjectCard({
           )}
         </ul>
 
-        <ul className="mt-4 space-y-2">
-          {project.highlights.slice(0, 2).map((highlight) => (
-            <li key={highlight} className="flex gap-2 text-sm text-text-dim">
-              <span className="text-accent shrink-0" aria-hidden="true">
-                →
-              </span>
-              <span>{highlight}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-6 pt-4 flex items-center gap-3">
+        {/* mt-auto pins the button row to the bottom of the card, so the
+            buttons line up across a row of cards whose descriptions and tech
+            lists differ in height. */}
+        <div className="mt-auto pt-6 flex items-center gap-3">
           <Link
             to={`/projects/${project.slug}`}
             aria-label={`View details for ${project.title}`}
