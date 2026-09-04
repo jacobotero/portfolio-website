@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { ThemeProvider } from '../context/ThemeProvider'
+import { getProject } from '../data/projects'
 import { ProjectDetail } from './ProjectDetail'
 
 // PageHero renders Starfield, which reads the theme via useTheme() — a
@@ -77,6 +78,8 @@ describe('ProjectDetail', () => {
     renderAt('donortrack')
     expect(
       document.querySelector('meta[name="description"]')?.getAttribute('content'),
-    ).toBe('Multi-tenant SaaS for nonprofit donor management')
+    // Read the expected value from the data rather than hardcoding the copy,
+    // so editing a tagline doesn't break a test about the wiring.
+    ).toBe(getProject('donortrack')?.tagline)
   })
 })

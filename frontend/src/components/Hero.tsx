@@ -60,7 +60,8 @@ export function Hero() {
           <p className="mt-5 max-w-xl text-text-dim leading-relaxed">
             Computer Science senior building full-stack products and the cloud
             infrastructure they run on. Three software engineering co-ops at
-            Mercedes-Benz U.S. International, and a production SaaS of my own.
+            Mercedes-Benz U.S. International, plus side projects I've taken all
+            the way to deployed.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">

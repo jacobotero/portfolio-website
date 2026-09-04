@@ -21,9 +21,9 @@ export const projects: Project[] = [
   {
     slug: 'donortrack',
     title: 'DonorTrack',
-    tagline: 'Multi-tenant SaaS for nonprofit donor management',
+    tagline: 'Multi-tenant donor management for small nonprofits',
     description:
-      'A production SaaS that replaces spreadsheets for small nonprofits and churches — donor and donation records, IRS-compliant year-end tax letters, and CSV import/export, all inside an isolated per-organization account.',
+      'A full-stack web app built to replace spreadsheets for small nonprofits and churches — donor and donation records, IRS-compliant year-end tax letters, and CSV import/export, all inside an isolated per-organization account.',
     tech: [
       'React',
       'TypeScript',
@@ -35,7 +35,7 @@ export const projects: Project[] = [
       'Docker',
     ],
     highlights: [
-      'Live in production, handling the full SaaS lifecycle from free trial through Stripe subscription to cancellation',
+      'Implements the full subscription lifecycle end to end — free trial, Stripe checkout, webhook-driven state, and cancellation',
       'Multi-tenant architecture with per-organization data isolation enforced by foreign-key scoping at the database level',
       'Server-side PDF generation for IRS-compliant year-end tax letters, downloadable individually or as a batch ZIP',
     ],
@@ -56,7 +56,7 @@ export const projects: Project[] = [
         'Added an internal admin panel behind email-gated middleware for extending trials and managing accounts.',
       ],
       outcome: [
-        'Running in production at donortrackapp.com with real organizations onboarded.',
+        'Deployed and running at donortrackapp.com.',
         'Sentry error monitoring wired into both frontend and backend with environment-aware initialization.',
         'API-level rate limiting across all routes.',
         'sitemap.xml and robots.txt served and submitted to Google Search Console.',
