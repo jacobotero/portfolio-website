@@ -54,8 +54,10 @@ describe('ProjectsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
+    const all = screen.getByRole('button', { name: 'All' })
     const flask = screen.getByRole('button', { name: 'Flask' })
     await user.click(flask)
     expect(flask).toHaveAttribute('aria-pressed', 'true')
+    expect(all).toHaveAttribute('aria-pressed', 'false')
   })
 })

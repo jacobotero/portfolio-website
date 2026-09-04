@@ -64,6 +64,7 @@ export function ProjectCard({
         <div className="mt-6 pt-4 flex items-center gap-3">
           <Link
             to={`/projects/${project.slug}`}
+            aria-label={`View details for ${project.title}`}
             className="px-4 py-2 text-sm font-display rounded-full bg-accent text-accent-contrast hover:bg-accent-strong transition-colors"
           >
             View details
@@ -73,6 +74,7 @@ export function ProjectCard({
               href={project.live}
               target="_blank"
               rel="noreferrer"
+              aria-label={`${project.title} live demo`}
               className="px-4 py-2 text-sm font-display rounded-full border border-border text-text-dim hover:text-heading hover:border-border-strong transition-colors"
             >
               Live demo
