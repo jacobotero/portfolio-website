@@ -1,15 +1,12 @@
 import { Link } from 'react-router'
+import profile from '../assets/profile.jpg'
 import { PageHero } from './PageHero'
 import { useRotatingText } from '../hooks/useRotatingText'
 
 const ROLES = ['Software Engineer', 'AI Engineer', 'Cloud Engineer']
 
-/**
- * Set to an imported image to replace the monogram placeholder, e.g.
- *   import profile from '../assets/profile.jpg'
- *   const PROFILE_IMAGE: string | null = profile
- */
-const PROFILE_IMAGE: string | null = null
+/** Set to null to fall back to the "JO" monogram placeholder. */
+const PROFILE_IMAGE: string | null = profile
 
 const SOCIALS = [
   {
