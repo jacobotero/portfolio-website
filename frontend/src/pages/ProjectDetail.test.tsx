@@ -72,4 +72,11 @@ describe('ProjectDetail', () => {
     renderAt('does-not-exist')
     expect(document.title).toBe('Page not found — Jacob Otero')
   })
+
+  it("sets the meta description to the project's own tagline", () => {
+    renderAt('donortrack')
+    expect(
+      document.querySelector('meta[name="description"]')?.getAttribute('content'),
+    ).toBe('Multi-tenant SaaS for nonprofit donor management')
+  })
 })

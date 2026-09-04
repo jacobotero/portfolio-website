@@ -14,7 +14,10 @@ const SOCIALS = [
 ]
 
 export function ContactPage() {
-  useDocumentTitle('Contact — Jacob Otero')
+  useDocumentTitle(
+    'Contact — Jacob Otero',
+    'Get in touch with Jacob Otero about full-time software engineering roles.',
+  )
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
 

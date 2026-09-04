@@ -14,6 +14,7 @@ export function ProjectDetail() {
   // rather than redirecting, so it needs the same title set here too.
   useDocumentTitle(
     project ? `${project.title} — Jacob Otero` : 'Page not found — Jacob Otero',
+    project ? project.tagline : "The page you're looking for doesn't exist.",
   )
 
   if (!project) return <NotFound />

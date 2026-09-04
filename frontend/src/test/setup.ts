@@ -35,3 +35,16 @@ if (typeof globalThis.IntersectionObserver === 'undefined') {
 
 // jsdom has no canvas implementation; components must tolerate a null context.
 HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as never
+
+// jsdom's document is blank — it never loads index.html — so mirror the
+// <meta name="description"> tag index.html defines, giving useDocumentTitle
+// the same starting point in tests that a real browser paints first.
+if (!document.querySelector('meta[name="description"]')) {
+  const meta = document.createElement('meta')
+  meta.setAttribute('name', 'description')
+  meta.setAttribute(
+    'content',
+    'Jacob Otero — Software Engineer, AI Engineer, Cloud Engineer. CS senior building full-stack products and the AWS infrastructure they run on.',
+  )
+  document.head.appendChild(meta)
+}

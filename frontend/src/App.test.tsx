@@ -46,6 +46,24 @@ describe('routing', () => {
     renderAt('/nope')
     expect(document.title).toBe('Page not found — Jacob Otero')
   })
+
+  // FIX E: every route used to serve index.html's one static description to
+  // crawlers. Each route now sets its own via useDocumentTitle, so a fresh
+  // render at each path should produce six distinct meta descriptions.
+  it('gives every route its own, distinct meta description', () => {
+    const routes = ['/', '/projects', '/projects/donortrack', '/experience', '/contact', '/nope']
+    const descriptions = routes.map((path) => {
+      renderAt(path)
+      return document
+        .querySelector('meta[name="description"]')
+        ?.getAttribute('content')
+    })
+
+    for (const description of descriptions) {
+      expect(description).toBeTruthy()
+    }
+    expect(new Set(descriptions).size).toBe(routes.length)
+  })
 })
 
 describe('pageview/title ordering (FIX C)', () => {

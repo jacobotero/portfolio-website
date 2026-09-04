@@ -3,7 +3,10 @@ import { PageHero } from '../components/PageHero'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ExperiencePage() {
-  useDocumentTitle('Experience — Jacob Otero')
+  useDocumentTitle(
+    'Experience — Jacob Otero',
+    "Jacob Otero's professional experience in software, AI, and cloud engineering.",
+  )
 
   return (
     <>
