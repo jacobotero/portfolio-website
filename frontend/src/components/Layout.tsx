@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Outlet, useLocation } from 'react-router'
+import { useAnalyticsPageview } from '../hooks/useAnalyticsPageview'
 import { BackToTop } from './BackToTop'
 import { Footer } from './Footer'
 import { Nav } from './Nav'
@@ -9,6 +10,7 @@ import { SocialSidebar } from './SocialSidebar'
 export function Layout() {
   const { pathname } = useLocation()
   const reduceMotion = useReducedMotion()
+  useAnalyticsPageview()
 
   return (
     <>
