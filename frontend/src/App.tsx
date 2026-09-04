@@ -1,36 +1,31 @@
-import { About } from './components/About'
-import { Contact } from './components/Contact'
-import { CustomCursor } from './components/CustomCursor'
-import { Experience } from './components/Experience'
-import { Footer } from './components/Footer'
-import { Hero } from './components/Hero'
-import { Nav } from './components/Nav'
-import { Projects } from './components/Projects'
-import { Resume } from './components/Resume'
-import { Skills } from './components/Skills'
-import { SocialSidebar } from './components/SocialSidebar'
-import { useScrollFlash } from './hooks/useScrollFlash'
+import { BrowserRouter, Route, Routes } from 'react-router'
+import { Layout } from './components/Layout'
+import { ContactPage } from './pages/ContactPage'
+import { ExperiencePage } from './pages/ExperiencePage'
+import { Home } from './pages/Home'
+import { NotFound } from './pages/NotFound'
+import { ProjectDetail } from './pages/ProjectDetail'
+import { ProjectsPage } from './pages/ProjectsPage'
 
-function App() {
-  useScrollFlash()
-
+export function AppRoutes() {
   return (
-    <>
-      <CustomCursor />
-      <Nav />
-      <SocialSidebar />
-      <main>
-        <Hero />
-        <About />
-        <Experience />
-        <Skills />
-        <Projects />
-        <Resume />
-        <Contact />
-      </main>
-      <Footer />
-    </>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:slug" element={<ProjectDetail />} />
+        <Route path="/experience" element={<ExperiencePage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  )
+}
