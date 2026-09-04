@@ -1,35 +1,42 @@
 import { useState } from 'react'
+import { useActiveSection } from '../hooks/useActiveSection'
 
 const LINKS = [
-  { href: '#about', label: 'about' },
-  { href: '#experience', label: 'experience' },
-  { href: '#skills', label: 'skills' },
-  { href: '#projects', label: 'projects' },
-  { href: '#resume', label: 'resume' },
-  { href: '#contact', label: 'contact' },
+  { href: '#about', id: 'about', label: 'about' },
+  { href: '#experience', id: 'experience', label: 'experience' },
+  { href: '#skills', id: 'skills', label: 'skills' },
+  { href: '#projects', id: 'projects', label: 'projects' },
+  { href: '#resume', id: 'resume', label: 'resume' },
+  { href: '#contact', id: 'contact', label: 'contact' },
 ]
 
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const activeSection = useActiveSection()
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40 border-b border-border bg-bg/85 backdrop-blur-sm">
-      <nav className="mx-auto max-w-4xl px-6 h-14 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2 group">
-          <span className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#4b5263] group-hover:bg-red-400/70 transition-colors" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#4b5263] group-hover:bg-yellow-400/70 transition-colors" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#4b5263] group-hover:bg-accent/70 transition-colors" />
-          </span>
-          <span className="ml-2 text-sm text-text-dim">jacob@portfolio</span>
+    <header className="fixed top-4 inset-x-0 z-40 flex justify-center px-4">
+      <nav className="relative flex items-center gap-1 pl-3 pr-2 py-2 rounded-full border border-border bg-bg/85 backdrop-blur-sm shadow-lg shadow-black/30 max-w-full">
+        <a
+          href="#top"
+          aria-label="Back to top"
+          className="flex items-center gap-1.5 px-2 shrink-0 group"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-red-400/70 transition-colors" />
+          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-yellow-400/70 transition-colors" />
+          <span className="w-2 h-2 rounded-full bg-[#4b5263] group-hover:bg-accent/70 transition-colors" />
         </a>
 
-        <ul className="hidden sm:flex items-center gap-6 text-sm">
+        <ul className="hidden sm:flex items-center gap-1 text-sm">
           {LINKS.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-text-dim hover:text-accent transition-colors before:content-['./'] before:text-accent/50"
+                className={`block px-3 py-1.5 rounded-full transition-colors ${
+                  activeSection === link.id
+                    ? 'bg-accent text-bg font-medium'
+                    : 'text-text-dim hover:text-accent'
+                }`}
               >
                 {link.label}
               </a>
@@ -43,7 +50,7 @@ export function Nav() {
           aria-expanded={menuOpen}
           aria-controls="mobile-nav-menu"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          className="sm:hidden p-2 -mr-2 text-text-dim hover:text-accent transition-colors"
+          className="sm:hidden p-2 text-text-dim hover:text-accent transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -69,26 +76,28 @@ export function Nav() {
             )}
           </svg>
         </button>
-      </nav>
 
-      {menuOpen && (
-        <ul
-          id="mobile-nav-menu"
-          className="sm:hidden border-t border-border bg-bg px-6 py-4 space-y-3 text-sm"
-        >
-          {LINKS.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="block text-text-dim hover:text-accent transition-colors before:content-['./'] before:text-accent/50"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+        {menuOpen && (
+          <ul
+            id="mobile-nav-menu"
+            className="sm:hidden absolute top-full mt-2 left-0 right-0 border border-border bg-bg rounded-2xl px-6 py-4 space-y-3 text-sm shadow-xl"
+          >
+            {LINKS.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block transition-colors ${
+                    activeSection === link.id ? 'text-accent' : 'text-text-dim hover:text-accent'
+                  }`}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </nav>
     </header>
   )
 }
