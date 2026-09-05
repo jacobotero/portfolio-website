@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { Reveal } from './Reveal'
 
 export function AboutBlock() {
@@ -20,11 +21,13 @@ export function AboutBlock() {
           </p>
           <p>
             I like building things end to end: writing the code, designing the
-            infrastructure it runs on, and shipping it somewhere real. DonorTrack
-            is the clearest example: a multi-tenant donor management app with
-            Stripe billing and server-side PDF generation, built and deployed on
-            my own. This site is another, running on the AWS services I'm
-            studying for the Solutions Architect Associate certification.
+            infrastructure it runs on, and shipping it somewhere real. This
+            site is one example, running on the AWS services I'm studying for
+            the Solutions Architect Associate certification. There are more in{' '}
+            <Link to="/projects" className="text-accent hover:underline">
+              Projects
+            </Link>
+            .
           </p>
           <p>
             I'm especially interested in AI and where it intersects with
