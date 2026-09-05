@@ -13,7 +13,7 @@ export function Footer() {
             Jacob Otero
           </Link>
           <p className="mt-2 text-sm text-text-dim">
-            Full-stack development · Database design · Cloud architecture · Applied AI
+            Full-stack development · Database design · System design · Cloud architecture · Applied AI
           </p>
         </div>
 

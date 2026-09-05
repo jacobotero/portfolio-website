@@ -9,6 +9,7 @@ import { useRotatingText } from '../hooks/useRotatingText'
 const ROLES = [
   'Full-stack development',
   'Database design',
+  'System design',
   'Cloud architecture',
   'Applied AI',
 ]
