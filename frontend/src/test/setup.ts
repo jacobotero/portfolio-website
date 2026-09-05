@@ -44,7 +44,7 @@ if (!document.querySelector('meta[name="description"]')) {
   meta.setAttribute('name', 'description')
   meta.setAttribute(
     'content',
-    'Jacob Otero, a Computer Science senior building full-stack products and the AWS infrastructure they run on. Full-stack development, cloud architecture, and applied AI.',
+    'Jacob Otero, a Computer Science senior building full-stack products and the AWS infrastructure they run on. Full-stack development, database design, cloud architecture, and applied AI.',
   )
   document.head.appendChild(meta)
 }
