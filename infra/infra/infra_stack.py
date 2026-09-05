@@ -34,17 +34,25 @@ from aws_cdk import (
 from aws_cdk import (
     aws_s3 as s3,
 )
+from aws_cdk import (
+    aws_ses as ses,
+)
 from constructs import Construct
-
-CONTACT_TO_EMAIL = "jacobotero0313@gmail.com"
-# SES starts in sandbox mode, so the "From" address must be a verified
-# identity too. Using the same address keeps setup to a single verification.
-CONTACT_FROM_EMAIL = CONTACT_TO_EMAIL
-
-LOCAL_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5184"]
 
 DOMAIN_NAME = "jacobotero.dev"
 WWW_DOMAIN_NAME = f"www.{DOMAIN_NAME}"
+
+CONTACT_TO_EMAIL = "jacobotero0313@gmail.com"
+# Sending "From" a gmail.com address via SES fails DMARC alignment at Gmail
+# (the mail genuinely comes from AWS's servers, not Google's, which is
+# indistinguishable from spoofing to a receiving mailbox) — this is why
+# contact-form mail was landing in spam. Sending from a domain we actually
+# control lets SES sign it with DKIM for that domain, which Gmail can verify
+# as legitimate. The domain is verified once, below; any address at it
+# (this one included) can send without a separate per-address verification.
+CONTACT_FROM_EMAIL = f"Jacob Otero <contact@{DOMAIN_NAME}>"
+
+LOCAL_DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5184"]
 
 # GitHub's OIDC "sub" claim embeds the numeric owner/repo IDs
 # (repo:<owner>@<ownerId>/<repo>@<repoId>:...) rather than plain names, as an
@@ -146,6 +154,25 @@ class InfraStack(Stack):
         site_origin = f"https://{DOMAIN_NAME}"
         cloudfront_default_origin = f"https://{distribution.distribution_domain_name}"
 
+        # Verifies the whole domain as an SES sending identity and DKIM-signs
+        # mail sent from any address at it. `HostedZone.from_lookup` above
+        # returns the general IHostedZone interface; SES's domain-verification
+        # helper specifically needs IPublicHostedZone, so it's re-wrapped here
+        # using the same zone's own ID rather than doing a second lookup.
+        public_hosted_zone = route53.PublicHostedZone.from_public_hosted_zone_attributes(
+            self,
+            "PublicHostedZoneForSes",
+            hosted_zone_id=hosted_zone.hosted_zone_id,
+            zone_name=DOMAIN_NAME,
+        )
+        ses.EmailIdentity(
+            self,
+            "SiteEmailIdentity",
+            # Adds the DKIM CNAME records (and a MAIL FROM domain) to the
+            # hosted zone automatically — no DNS values to copy by hand.
+            identity=ses.Identity.public_hosted_zone(public_hosted_zone),
+        )
+
         contact_fn = lambda_.Function(
             self,
             "ContactFunction",
@@ -162,9 +189,11 @@ class InfraStack(Stack):
             iam.PolicyStatement(
                 actions=["ses:SendEmail", "ses:SendRawEmail"],
                 # Scoped to the one verified identity this Lambda actually
-                # sends as, rather than every identity in the account.
+                # sends as: the DOMAIN (CONTACT_FROM_EMAIL is now a display
+                # name plus an address at it, not an identity of its own —
+                # verifying the domain authorizes any address at it).
                 resources=[
-                    f"arn:aws:ses:{self.region}:{self.account}:identity/{CONTACT_FROM_EMAIL}"
+                    f"arn:aws:ses:{self.region}:{self.account}:identity/{DOMAIN_NAME}"
                 ],
             )
         )

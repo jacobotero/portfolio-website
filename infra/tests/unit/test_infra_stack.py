@@ -43,6 +43,40 @@ def test_contact_lambda_created_with_expected_env():
     )
 
 
+def test_ses_domain_identity_created_for_the_site_domain():
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::SES::EmailIdentity",
+        {"EmailIdentity": "jacobotero.dev"},
+    )
+
+
+def test_contact_lambda_can_only_send_as_the_verified_domain():
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::IAM::Policy",
+        {
+            "PolicyDocument": {
+                "Statement": assertions.Match.array_with(
+                    [
+                        assertions.Match.object_like(
+                            {
+                                "Action": assertions.Match.array_with(
+                                    ["ses:SendEmail"]
+                                ),
+                                "Effect": "Allow",
+                                "Resource": assertions.Match.string_like_regexp(
+                                    r".*identity/jacobotero\.dev$"
+                                ),
+                            }
+                        )
+                    ]
+                )
+            }
+        },
+    )
+
+
 def test_http_api_created():
     template = _synth_template()
     template.resource_count_is("AWS::ApiGatewayV2::Api", 1)
