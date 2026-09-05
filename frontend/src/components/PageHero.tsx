@@ -18,7 +18,7 @@ export function PageHero({
   return (
     <section
       className={`relative overflow-hidden px-6 ${
-        fullHeight ? 'min-h-screen flex items-center' : 'pt-36 pb-16'
+        fullHeight ? 'min-h-screen flex items-center' : 'pt-28 sm:pt-36 pb-16'
       }`}
     >
       <div

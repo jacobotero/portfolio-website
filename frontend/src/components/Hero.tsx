@@ -40,9 +40,13 @@ export function Hero() {
 
   return (
     <PageHero fullHeight>
-      <div className="grid lg:grid-cols-[1.1fr_auto] gap-12 lg:gap-16 items-center py-24">
-        <div>
-          <h1 className="font-display font-extrabold tracking-tight text-[clamp(2.75rem,7vw,4.5rem)] leading-[1.05]">
+      <div className="grid lg:grid-cols-[1.1fr_auto] gap-10 lg:gap-16 items-center py-16 lg:py-24">
+        <div className="order-2 lg:order-none">
+          {/* clamp's floor is 2.25rem, not the original 2.75rem: at a
+              360-375px phone width that quarter-rem was enough to push a
+              three-line heading, which read as oversized and cramped next
+              to the rest of the hero. */}
+          <h1 className="font-display font-extrabold tracking-tight text-[clamp(2.25rem,9vw,4.5rem)] leading-[1.05]">
             Hi, I'm Jacob Otero
           </h1>
 
@@ -125,7 +129,12 @@ export function Hero() {
           </ul>
         </div>
 
-        <div className="justify-self-center lg:justify-self-end">
+        {/* order-1: on mobile (single-column) the photo leads, so a visitor
+            sees a face immediately instead of scrolling past the full text
+            block first. lg:order-none restores source order (text column
+            first, photo column second) once the grid is genuinely
+            two-column. */}
+        <div className="order-1 lg:order-none justify-self-center lg:justify-self-end">
           <div className="relative w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80">
             <div
               aria-hidden="true"

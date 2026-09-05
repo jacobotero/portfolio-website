@@ -132,8 +132,18 @@ export function AssistantWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.97 }}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.18 }}
-            className="fixed bottom-24 right-6 z-40 w-[calc(100vw-3rem)] max-w-sm rounded-2xl border border-border bg-bg-raised shadow-2xl flex flex-col overflow-hidden"
-            style={{ height: 'min(28rem, 70vh)' }}
+            // bottom-40, not bottom-24: both share right-6, and BackToTop
+            // occupies bottom-24 through ~bottom-35 (96-140px from the
+            // bottom edge) once it's visible. At bottom-24 the panel's own
+            // corner sat exactly on top of that button — most visible on
+            // mobile, where the panel is nearly full width. bottom-40
+            // (160px) clears it with a 20px margin.
+            className="fixed bottom-40 right-6 z-40 w-[calc(100vw-3rem)] max-w-sm rounded-2xl border border-border bg-bg-raised shadow-2xl flex flex-col overflow-hidden"
+            // Reduced from 28rem/70vh now that the panel sits 64px higher
+            // (bottom-40 instead of bottom-24): with the old, taller budget,
+            // a short mobile viewport (browser chrome visible, no keyboard)
+            // could push the panel's top edge up under the nav pill.
+            style={{ height: 'min(26rem, 60vh)' }}
           >
             <div className="px-4 py-3 border-b border-border">
               <p className="text-sm font-display font-medium text-heading">
