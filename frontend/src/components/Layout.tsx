@@ -1,6 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocation, useOutlet } from 'react-router'
 import { useAnalyticsPageview } from '../hooks/useAnalyticsPageview'
+import { AssistantWidget } from './AssistantWidget'
 import { BackToTop } from './BackToTop'
 import { Footer } from './Footer'
 import { Nav } from './Nav'
@@ -56,6 +57,10 @@ export function Layout() {
       <SocialSidebar />
       <BackToTop />
       <Footer />
+      {/* Outside AnimatePresence/the keyed page wrapper deliberately: it's
+          persistent chrome, not page content — mounting it inside would
+          remount it (and lose the conversation) on every route change. */}
+      <AssistantWidget />
     </>
   )
 }

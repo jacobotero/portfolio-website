@@ -28,7 +28,9 @@ export function BackToTop() {
           behavior: reduceMotion ? 'auto' : 'smooth',
         })
       }
-      className="fixed bottom-6 right-6 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-accent text-accent-contrast hover:bg-accent-strong transition-colors"
+      // bottom-24, not bottom-6: AssistantWidget's toggle button now
+      // occupies bottom-6 right-6, so this stacks directly above it.
+      className="fixed bottom-24 right-6 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-accent text-accent-contrast hover:bg-accent-strong transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

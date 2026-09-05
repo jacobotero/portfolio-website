@@ -52,6 +52,12 @@ WWW_DOMAIN_NAME = f"www.{DOMAIN_NAME}"
 # AssumeRoleWithWebIdentity call in CloudTrail before this was fixed.
 GITHUB_REPO_SUBJECT_PREFIX = "repo:jacobotero@145607571/portfolio-website@1355388222:"
 
+# Created manually (`aws ssm put-parameter --type SecureString`), not by this
+# stack — CDK never sees the value, only this ARN, so the key never appears
+# in a template, a diff, or git history. Standard tier, not Advanced or
+# Secrets Manager, so storing it costs nothing.
+GEMINI_API_KEY_PARAM = "/portfolio/gemini-api-key"
+
 
 class InfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -195,6 +201,35 @@ class InfraStack(Stack):
             ),
         )
 
+        assistant_fn = lambda_.Function(
+            self,
+            "AssistantFunction",
+            runtime=lambda_.Runtime.PYTHON_3_13,
+            handler="handler.handler",
+            code=lambda_.Code.from_asset("lambda/assistant"),
+            timeout=Duration.seconds(20),
+            environment={
+                "API_KEY_PARAM": GEMINI_API_KEY_PARAM,
+            },
+        )
+        # Scoped to exactly the one parameter holding the Gemini key, not
+        # every parameter in the account.
+        assistant_fn.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["ssm:GetParameter"],
+                resources=[
+                    f"arn:aws:ssm:{self.region}:{self.account}:parameter{GEMINI_API_KEY_PARAM}"
+                ],
+            )
+        )
+        http_api.add_routes(
+            path="/assistant",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=apigwv2_integrations.HttpLambdaIntegration(
+                "AssistantIntegration", assistant_fn
+            ),
+        )
+
         # GitHub Actions deploys via OIDC federation instead of long-lived
         # access keys: CI assumes this role using a short-lived web identity
         # token, scoped to this one repo.
@@ -250,4 +285,5 @@ class InfraStack(Stack):
         CfnOutput(self, "SiteUrl", value=site_origin)
         CfnOutput(self, "CloudFrontDefaultUrl", value=cloudfront_default_origin)
         CfnOutput(self, "ContactApiUrl", value=f"{http_api.api_endpoint}/contact")
+        CfnOutput(self, "AssistantApiUrl", value=f"{http_api.api_endpoint}/assistant")
         CfnOutput(self, "GithubActionsRoleArn", value=deploy_role.role_arn)

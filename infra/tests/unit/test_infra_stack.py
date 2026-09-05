@@ -46,3 +46,41 @@ def test_contact_lambda_created_with_expected_env():
 def test_http_api_created():
     template = _synth_template()
     template.resource_count_is("AWS::ApiGatewayV2::Api", 1)
+
+
+def test_assistant_lambda_created_with_expected_env():
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::Lambda::Function",
+        {
+            "Handler": "handler.handler",
+            "Runtime": "python3.13",
+            "Environment": {
+                "Variables": {"API_KEY_PARAM": "/portfolio/gemini-api-key"}
+            },
+        },
+    )
+
+
+def test_assistant_lambda_can_only_read_its_own_parameter():
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::IAM::Policy",
+        {
+            "PolicyDocument": {
+                "Statement": assertions.Match.array_with(
+                    [
+                        assertions.Match.object_like(
+                            {
+                                "Action": "ssm:GetParameter",
+                                "Effect": "Allow",
+                                "Resource": assertions.Match.string_like_regexp(
+                                    r".*parameter/portfolio/gemini-api-key$"
+                                ),
+                            }
+                        )
+                    ]
+                )
+            }
+        },
+    )

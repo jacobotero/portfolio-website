@@ -32,6 +32,7 @@ jobs:
       - run: npm run build
         env:
           VITE_CONTACT_API_URL: ${{ vars.CONTACT_API_URL }}
+          VITE_ASSISTANT_API_URL: ${{ vars.ASSISTANT_API_URL }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
 
       # Pinned to a commit SHA (v4.3.1), not a mutable tag, since this
