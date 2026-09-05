@@ -38,4 +38,21 @@ describe('SkillTabs', () => {
       screen.getByRole('button', { name: SKILL_GROUPS[1].label }),
     ).toHaveAttribute('aria-pressed', 'true')
   })
+
+  it("renders a skill's own viewBox when it has one, and the shared 24x24 one otherwise", () => {
+    // Java and Python are both in Languages, the default tab, so both are
+    // on screen without needing to switch category. Java's icon is sourced
+    // from Material Symbols (native coordinate space 0 -960 960 960);
+    // Python's is a simple-icons brand mark (0 0 24 24, via the default).
+    // Rendering a Material Symbols path in a 24-unit box makes it an
+    // invisible speck in one corner — checking the DATA's viewBox field
+    // alone doesn't catch that; it has to be the DOM's actual attribute.
+    render(<SkillTabs />)
+
+    const pythonIcon = screen.getByText('Python').querySelector('svg')
+    expect(pythonIcon).toHaveAttribute('viewBox', '0 0 24 24')
+
+    const javaIcon = screen.getByText('Java').querySelector('svg')
+    expect(javaIcon).toHaveAttribute('viewBox', '0 -960 960 960')
+  })
 })
