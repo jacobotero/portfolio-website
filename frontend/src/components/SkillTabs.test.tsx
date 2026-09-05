@@ -55,4 +55,16 @@ describe('SkillTabs', () => {
     const javaIcon = screen.getByText('Java').querySelector('svg')
     expect(javaIcon).toHaveAttribute('viewBox', '0 -960 960 960')
   })
+
+  it("renders a brand icon in its own color, and a generic glyph in the site's accent", () => {
+    render(<SkillTabs />)
+
+    // Python is a real brand mark with an official color; SQL is a generic
+    // glyph (no real brand to speak for) and should stay accent-colored.
+    const pythonIcon = screen.getByText('Python').querySelector('svg')
+    expect(pythonIcon).toHaveStyle({ color: '#3776AB' })
+
+    const sqlIcon = screen.getByText('SQL').querySelector('svg')
+    expect(sqlIcon).toHaveStyle({ color: 'var(--c-accent)' })
+  })
 })

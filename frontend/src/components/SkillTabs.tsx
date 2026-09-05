@@ -8,6 +8,11 @@ interface Skill {
       coordinate space is 0 -960 960 960, not the 0 0 24 24 every simple-icons
       brand mark below uses. Defaults to '0 0 24 24' at render time. */
   viewBox?: string
+  /** Official brand color (from simple-icons' `hex` field), only set for
+      real logos. Generic glyphs standing in for a concept rather than a
+      product (SQL, AWS services, Power Fx, etc.) have no "official" color,
+      so they're left unset and fall back to the site's accent violet. */
+  color?: string
 }
 
 interface SkillGroup {
@@ -95,17 +100,25 @@ const ICONS = {
 
 const MATERIAL_SYMBOLS_VIEWBOX = '0 -960 960 960'
 
+// Official brand colors, from simple-icons' `hex` field (same one-time
+// install-and-copy approach used to source the icon paths above). A few
+// brands' real mark is pure/near-black (Next.js, Vercel, MCP, Railway) —
+// literal black would nearly vanish against this site's near-black dark
+// theme, so those use the theme-aware heading color instead, which inverts
+// correctly in light mode too.
+const HEADING_FALLBACK = 'var(--c-heading)'
+
 export const SKILL_GROUPS: SkillGroup[] = [
   {
     label: 'Languages',
     skills: [
-      { name: 'Python', path: ICONS.python },
-      { name: 'TypeScript', path: ICONS.typescript },
-      { name: 'JavaScript', path: ICONS.javascript },
+      { name: 'Python', path: ICONS.python, color: '#3776AB' },
+      { name: 'TypeScript', path: ICONS.typescript, color: '#3178C6' },
+      { name: 'JavaScript', path: ICONS.javascript, color: '#F7DF1E' },
       { name: 'SQL', path: ICONS.database },
-      { name: 'C/C++', path: ICONS.cplusplus },
+      { name: 'C/C++', path: ICONS.cplusplus, color: '#00599C' },
       { name: 'Java', path: ICONS.coffee, viewBox: MATERIAL_SYMBOLS_VIEWBOX },
-      { name: 'HTML/CSS', path: ICONS.html5 },
+      { name: 'HTML/CSS', path: ICONS.html5, color: '#E34F26' },
       {
         name: 'Power Fx',
         path: ICONS.functions,
@@ -116,22 +129,22 @@ export const SKILL_GROUPS: SkillGroup[] = [
   {
     label: 'Frameworks & Libraries',
     skills: [
-      { name: 'React', path: ICONS.react },
-      { name: 'Next.js', path: ICONS.nextjs },
-      { name: 'Node.js', path: ICONS.nodejs },
-      { name: 'Flask', path: ICONS.flask },
-      { name: 'Tailwind CSS', path: ICONS.tailwind },
-      { name: 'Vite', path: ICONS.vite },
+      { name: 'React', path: ICONS.react, color: '#61DAFB' },
+      { name: 'Next.js', path: ICONS.nextjs, color: HEADING_FALLBACK },
+      { name: 'Node.js', path: ICONS.nodejs, color: '#5FA04E' },
+      { name: 'Flask', path: ICONS.flask, color: '#3BABC3' },
+      { name: 'Tailwind CSS', path: ICONS.tailwind, color: '#06B6D4' },
+      { name: 'Vite', path: ICONS.vite, color: '#9135FF' },
       { name: 'REST APIs', path: ICONS.api, viewBox: MATERIAL_SYMBOLS_VIEWBOX },
     ],
   },
   {
     label: 'Databases',
     skills: [
-      { name: 'PostgreSQL', path: ICONS.postgresql },
-      { name: 'MongoDB', path: ICONS.mongodb },
-      { name: 'Prisma', path: ICONS.prisma },
-      { name: 'Supabase', path: ICONS.supabase },
+      { name: 'PostgreSQL', path: ICONS.postgresql, color: '#4169E1' },
+      { name: 'MongoDB', path: ICONS.mongodb, color: '#47A248' },
+      { name: 'Prisma', path: ICONS.prisma, color: '#2D3748' },
+      { name: 'Supabase', path: ICONS.supabase, color: '#3FCF8E' },
     ],
   },
   {
@@ -143,9 +156,11 @@ export const SKILL_GROUPS: SkillGroup[] = [
       { name: 'S3', path: ICONS.inbox },
       { name: 'CloudFront', path: ICONS.globe },
       { name: 'EC2', path: ICONS.host, viewBox: MATERIAL_SYMBOLS_VIEWBOX },
-      { name: 'Docker', path: ICONS.docker },
-      { name: 'Vercel', path: ICONS.vercel },
-      { name: 'Railway', path: ICONS.railway },
+      { name: 'Docker', path: ICONS.docker, color: '#2496ED' },
+      { name: 'Vercel', path: ICONS.vercel, color: HEADING_FALLBACK },
+      // Railway's real hex (#0B0D0E) is nearly identical to this site's own
+      // near-black dark background — it would all but disappear there.
+      { name: 'Railway', path: ICONS.railway, color: HEADING_FALLBACK },
     ],
   },
   {
@@ -154,9 +169,13 @@ export const SKILL_GROUPS: SkillGroup[] = [
       { name: 'OpenAI API', path: ICONS.sparkle },
       { name: 'LLM Integration', path: ICONS.code },
       { name: 'RAG', path: ICONS.managesearch, viewBox: MATERIAL_SYMBOLS_VIEWBOX },
-      { name: 'LangChain', path: ICONS.langchain },
-      { name: 'MCP', path: ICONS.modelcontextprotocol },
-      { name: 'TensorFlow', path: ICONS.tensorflow },
+      { name: 'LangChain', path: ICONS.langchain, color: '#7FC8FF' },
+      {
+        name: 'MCP',
+        path: ICONS.modelcontextprotocol,
+        color: HEADING_FALLBACK,
+      },
+      { name: 'TensorFlow', path: ICONS.tensorflow, color: '#FF6F00' },
     ],
   },
 ]
@@ -221,7 +240,8 @@ export function SkillTabs() {
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox={skill.viewBox ?? '0 0 24 24'}
                   fill="currentColor"
-                  className="w-4 h-4 text-accent"
+                  className="w-4 h-4"
+                  style={{ color: skill.color ?? 'var(--c-accent)' }}
                   aria-hidden="true"
                 >
                   <path d={skill.path} />
