@@ -7,9 +7,6 @@ import { afterEach, vi } from 'vitest'
 // even another test's) ThemeProvider mount.
 afterEach(() => {
   localStorage.clear()
-  // useGitHubStats caches its fetch result here; without clearing it, one
-  // test's cached data leaks into another test's (or file's) render.
-  sessionStorage.clear()
 })
 
 if (typeof window.matchMedia !== 'function') {

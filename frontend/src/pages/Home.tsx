@@ -1,7 +1,6 @@
 import { Link } from 'react-router'
 import { AboutBlock } from '../components/AboutBlock'
 import { Certifications } from '../components/Certifications'
-import { GitHubActivity } from '../components/GitHubActivity'
 import { Hero } from '../components/Hero'
 import { ProjectCard } from '../components/ProjectCard'
 import { Reveal } from '../components/Reveal'
@@ -67,7 +66,6 @@ export function Home() {
         </div>
       </section>
 
-      <GitHubActivity />
       <Certifications />
     </>
   )

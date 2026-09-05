@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ThemeProvider } from '../context/ThemeProvider'
 import { Home } from './Home'
 
@@ -17,23 +17,6 @@ function renderHome() {
 }
 
 describe('Home', () => {
-  beforeEach(() => {
-    // GitHubActivity's useGitHubStats() calls the real fetch API on mount.
-    // A promise that never settles keeps it deterministically in its
-    // 'loading' state for these tests (which don't care about it) rather
-    // than making a real network call or letting a stray async state update
-    // land after the test's own assertions finish.
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => new Promise(() => {})),
-    )
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-
   it('shows exactly the three featured projects', () => {
     renderHome()
     expect(screen.getByText('DonorTrack')).toBeInTheDocument()
