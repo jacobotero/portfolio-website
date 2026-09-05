@@ -5,6 +5,10 @@ import { allTech, projects } from '../data/projects'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const ALL = 'All'
+// Every project's combined tech list runs well past what fits on one line —
+// show this many up front and fold the rest behind a "+N more" toggle
+// rather than letting the filter bar sprawl across several cramped rows.
+const DEFAULT_VISIBLE_TECH = 10
 
 export function ProjectsPage() {
   useDocumentTitle(
@@ -12,7 +16,13 @@ export function ProjectsPage() {
     'A showcase of full-stack and cloud projects by Jacob Otero, spanning React, Node.js, and AWS infrastructure.',
   )
   const [filter, setFilter] = useState(ALL)
-  const filters = useMemo(() => [ALL, ...allTech()], [])
+  const [showAllTech, setShowAllTech] = useState(false)
+  const allTechList = useMemo(() => allTech(), [])
+  const hiddenTechCount = allTechList.length - DEFAULT_VISIBLE_TECH
+  const visibleTech = showAllTech
+    ? allTechList
+    : allTechList.slice(0, DEFAULT_VISIBLE_TECH)
+  const filters = [ALL, ...visibleTech]
 
   const visible = useMemo(
     () =>
@@ -31,7 +41,7 @@ export function ProjectsPage() {
 
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-5xl">
-          <ul className="flex flex-wrap justify-center gap-2 mb-10">
+          <ul className="flex flex-wrap justify-center gap-x-2 gap-y-3 mb-10">
             {filters.map((tech) => {
               const selected = tech === filter
               return (
@@ -51,6 +61,18 @@ export function ProjectsPage() {
                 </li>
               )
             })}
+            {hiddenTechCount > 0 && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setShowAllTech((v) => !v)}
+                  aria-expanded={showAllTech}
+                  className="px-3.5 py-1.5 text-xs rounded-full border border-border bg-bg-elevated text-accent hover:border-border-strong transition-colors"
+                >
+                  {showAllTech ? 'Show less' : `+${hiddenTechCount} more`}
+                </button>
+              </li>
+            )}
           </ul>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">

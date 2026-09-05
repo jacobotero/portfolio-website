@@ -73,4 +73,25 @@ describe('ProjectsPage', () => {
     renderPage()
     expect(document.title).toBe('Projects - Jacob Otero')
   })
+
+  it('folds the tail of the tech filter list behind a "+N more" toggle', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    // Zod is the last (alphabetically) of the full tech list — well past
+    // the default cutoff, so it should start hidden.
+    expect(screen.queryByRole('button', { name: 'Zod' })).not.toBeInTheDocument()
+    const moreButton = screen.getByRole('button', { name: /\+\d+ more/ })
+    expect(moreButton).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(moreButton)
+
+    expect(screen.getByRole('button', { name: 'Zod' })).toBeInTheDocument()
+    const lessButton = screen.getByRole('button', { name: /show less/i })
+    expect(lessButton).toHaveAttribute('aria-expanded', 'true')
+
+    await user.click(lessButton)
+
+    expect(screen.queryByRole('button', { name: 'Zod' })).not.toBeInTheDocument()
+  })
 })
