@@ -135,18 +135,26 @@ h1, h2, h3, h4 {
   height: 10px;
   border-radius: 999px;
   background: var(--c-accent);
+  /* Transparent border, same width the hover state uses — so hovering
+     transitions the *color* in, not the width, and the box never jumps
+     size purely from the border appearing. */
+  border: 2px solid transparent;
   box-shadow: 0 0 16px 4px var(--c-glow);
   opacity: 0;
   pointer-events: none;
   z-index: 9999;
-  transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease,
-    opacity 0.2s ease;
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
+/* Hollow ring rather than a bigger filled dot — a solid blob at this size
+   was covering the very button/link text it was hovering. */
 .custom-cursor-dot.is-hovering {
   width: 34px;
   height: 34px;
-  box-shadow: 0 0 28px 10px var(--c-glow);
+  background: transparent;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 24px 6px var(--c-glow);
 }
 
 @media (prefers-reduced-motion: reduce) {

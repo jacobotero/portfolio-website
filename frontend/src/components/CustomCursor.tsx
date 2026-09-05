@@ -2,8 +2,9 @@ import { useEffect, useRef } from 'react'
 import { useReducedMotion } from 'motion/react'
 
 /** How much of the gap to target position is closed each frame — the same
-    "ease toward a target" shape Starfield uses for its pointer parallax. */
-const EASE = 0.25
+    "ease toward a target" shape Starfield uses for its pointer parallax.
+    Higher = snappier/closer to the real pointer, lower = more trailing lag. */
+const EASE = 0.55
 
 /** Anything matching this is treated as interactive for the hover-grow
     state. Selector-based rather than reading computed `cursor: pointer` off
