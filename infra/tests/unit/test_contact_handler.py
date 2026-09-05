@@ -41,6 +41,76 @@ def test_valid_submission_sends_email(handler_module):
 
 
 @mock_aws
+def test_subject_is_included_in_the_email_when_given(handler_module, monkeypatch):
+    ses_client = boto3.client("ses", region_name="us-east-1")
+    ses_client.verify_email_identity(EmailAddress="jacobotero0313@gmail.com")
+
+    sent = {}
+    original_send = handler_module.ses.send_email
+
+    def capture(**kwargs):
+        sent.update(kwargs)
+        return original_send(**kwargs)
+
+    monkeypatch.setattr(handler_module.ses, "send_email", capture)
+
+    response = handler_module.handler(
+        _event(
+            {
+                "name": "Alice",
+                "email": "alice@example.com",
+                "subject": "Job opportunity",
+                "message": "Hi!",
+            }
+        ),
+        None,
+    )
+
+    assert response["statusCode"] == 200
+    assert "Job opportunity" in sent["Message"]["Subject"]["Data"]
+    assert "Job opportunity" in sent["Message"]["Body"]["Text"]["Data"]
+
+
+@mock_aws
+def test_omitting_subject_still_sends_the_default_subject_line(handler_module, monkeypatch):
+    ses_client = boto3.client("ses", region_name="us-east-1")
+    ses_client.verify_email_identity(EmailAddress="jacobotero0313@gmail.com")
+
+    sent = {}
+    original_send = handler_module.ses.send_email
+
+    def capture(**kwargs):
+        sent.update(kwargs)
+        return original_send(**kwargs)
+
+    monkeypatch.setattr(handler_module.ses, "send_email", capture)
+
+    response = handler_module.handler(
+        _event({"name": "Alice", "email": "alice@example.com", "message": "Hi!"}),
+        None,
+    )
+
+    assert response["statusCode"] == 200
+    assert sent["Message"]["Subject"]["Data"] == "Portfolio contact from Alice"
+
+
+@mock_aws
+def test_subject_too_long_returns_400(handler_module):
+    response = handler_module.handler(
+        _event(
+            {
+                "name": "Alice",
+                "email": "alice@example.com",
+                "subject": "x" * 201,
+                "message": "Hi!",
+            }
+        ),
+        None,
+    )
+    assert response["statusCode"] == 400
+
+
+@mock_aws
 def test_missing_fields_returns_400(handler_module):
     response = handler_module.handler(_event({"name": "", "email": "", "message": ""}), None)
     assert response["statusCode"] == 400

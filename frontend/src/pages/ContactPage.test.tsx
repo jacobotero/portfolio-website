@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '../context/ThemeProvider'
 import { ContactPage } from './ContactPage'
 
@@ -98,5 +98,68 @@ describe('ContactPage form', () => {
   it('sets the document title', () => {
     renderPage()
     expect(document.title).toBe('Contact - Jacob Otero')
+  })
+
+  it('submits successfully without a subject, since it is optional', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.type(screen.getByLabelText(/name/i), 'Jacob')
+    await user.type(screen.getByLabelText(/email/i), 'jacob@example.com')
+    await user.type(screen.getByLabelText(/message/i), 'Hello there')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    // Reaches the same submit path as the fully-filled-out case — an empty
+    // subject must not trip the "all fields are required" validation.
+    expect(
+      await screen.findByText(/contact endpoint not configured/i),
+    ).toBeInTheDocument()
+  })
+
+  it('includes the subject in the request body when the visitor provides one', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => ({ ok: true }) })
+    vi.resetModules()
+    vi.stubEnv('VITE_CONTACT_API_URL', 'https://api.example.com/contact')
+    vi.stubGlobal('fetch', fetchMock)
+
+    try {
+      // ContactPage reads VITE_CONTACT_API_URL into a module-level constant
+      // at import time (same pattern as AssistantWidget), so stubbing the
+      // env after the static top-level import above has no effect on it —
+      // this test needs its own fresh import, taken after the stub.
+      //
+      // ThemeProvider must come from that same fresh import too:
+      // vi.resetModules() gives the re-imported ContactPage -> PageHero ->
+      // Starfield -> useTheme a brand new ThemeContext instance, which the
+      // statically-imported ThemeProvider above no longer matches.
+      const { ContactPage: ConfiguredContactPage } = await import(
+        './ContactPage'
+      )
+      const { ThemeProvider: FreshThemeProvider } = await import(
+        '../context/ThemeProvider'
+      )
+      const user = userEvent.setup()
+      render(
+        <FreshThemeProvider>
+          <ConfiguredContactPage />
+        </FreshThemeProvider>,
+      )
+
+      await user.type(screen.getByLabelText(/name/i), 'Jacob')
+      await user.type(screen.getByLabelText(/email/i), 'jacob@example.com')
+      await user.type(screen.getByLabelText(/subject/i), 'Job opportunity')
+      await user.type(screen.getByLabelText(/message/i), 'Hello there')
+      await user.click(screen.getByRole('button', { name: /send/i }))
+
+      await screen.findByText(/message sent/i)
+      const [, requestInit] = fetchMock.mock.calls[0]
+      const body = JSON.parse(requestInit.body)
+      expect(body.subject).toBe('Job opportunity')
+    } finally {
+      vi.unstubAllGlobals()
+      vi.unstubAllEnvs()
+    }
   })
 })
