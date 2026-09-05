@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { hasReducedMotionListener, prefersReducedMotion } from 'motion-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '../context/ThemeProvider'
-import { Starfield } from './Starfield'
+import { createStars, Starfield } from './Starfield'
 import { ThemeToggle } from './ThemeToggle'
 
 /**
@@ -326,14 +326,19 @@ describe('Starfield', () => {
       </ThemeProvider>,
     )
 
-    const initialFill = ctx.fillStyleHistory.at(-1)
-    expect(initialFill).toContain('255, 255, 255') // dark is the initial theme
+    // Checking "some" draw rather than only the *last* one: stars now carry
+    // a random warm/cool tint (~20% of them), which offsets their triplet
+    // away from the pure base color — pinning this on whichever star happens
+    // to be drawn last would make the assertion flaky. With ~20 stars at
+    // this canvas size, at least one untinted draw is a near-certainty.
+    const initialFills = [...ctx.fillStyleHistory]
+    expect(initialFills.some((f) => f.includes('255, 255, 255'))).toBe(true) // dark is the initial theme
 
     await user.click(screen.getByRole('button', { name: /theme/i })) // dark -> light
 
-    const fillAfterToggle = ctx.fillStyleHistory.at(-1)
-    expect(fillAfterToggle).toContain('90, 80, 120') // light's triplet, not dark's
-    expect(fillAfterToggle).not.toBe(initialFill)
+    const fillsAfterToggle = ctx.fillStyleHistory.slice(initialFills.length)
+    expect(fillsAfterToggle.some((f) => f.includes('90, 80, 120'))).toBe(true) // light's triplet, not dark's
+    expect(fillsAfterToggle.some((f) => f.includes('255, 255, 255'))).toBe(false)
   })
 
   it('rotates the field, so star positions move over time', () => {
@@ -389,6 +394,59 @@ describe('Starfield', () => {
     // as motionless. This range check is what separates the two.
     const swing = Math.max(...alphas) - Math.min(...alphas)
     expect(swing).toBeGreaterThan(0.25)
+  })
+
+  it('generates stars across multiple depth layers, not one flat spread', () => {
+    // A large canvas gives a big enough sample that all three layers
+    // (far/mid/near) are essentially guaranteed to appear.
+    const stars = createStars(1200, 800)
+
+    expect(stars.length).toBeGreaterThan(0)
+    const depths = stars.map((s) => s.depth)
+    // Far layer tops out at 0.22, near layer starts at 0.62 — a real spread
+    // across layers must clear both sides of that gap. A single flat
+    // Math.random() spread (the old behaviour) would too, so this is
+    // necessary but not sufficient; it at least catches a regression to "no
+    // depth variation at all" (e.g. every star clustered in one band).
+    expect(Math.min(...depths)).toBeLessThan(0.3)
+    expect(Math.max(...depths)).toBeGreaterThan(0.6)
+
+    // Near-layer stars (by construction, the ones with the highest depth)
+    // should read as closer: bigger and brighter on average than far-layer
+    // stars (lowest depth), not just differently positioned.
+    const sorted = [...stars].sort((a, b) => a.depth - b.depth)
+    const farSlice = sorted.slice(0, Math.floor(sorted.length * 0.3))
+    const nearSlice = sorted.slice(-Math.floor(sorted.length * 0.3))
+    const avg = (nums: number[]) => nums.reduce((a, b) => a + b, 0) / nums.length
+    expect(avg(nearSlice.map((s) => s.size))).toBeGreaterThan(
+      avg(farSlice.map((s) => s.size)),
+    )
+    expect(avg(nearSlice.map((s) => s.alpha))).toBeGreaterThan(
+      avg(farSlice.map((s) => s.alpha)),
+    )
+  })
+
+  it('gives a minority of stars a warm or cool tint rather than leaving the field flat', () => {
+    const stars = createStars(1200, 800)
+    const tints = new Set(stars.map((s) => s.tint))
+
+    // With ~228 stars at this size and a ~20% combined warm/cool rate,
+    // landing on all 'none' is astronomically unlikely — this isn't a coin
+    // flip a rare unlucky run could fail.
+    expect(tints.has('warm') || tints.has('cool')).toBe(true)
+    expect(tints.has('none')).toBe(true) // still mostly untinted, not a rainbow
+  })
+
+  it('never lets a star\'s twinkle dim it all the way to zero alpha', () => {
+    // twinkleDepth capped below 1 per layer means peak dimness is
+    // alpha * (1 - twinkleDepth), never zero — the earlier design's brief
+    // (raise the visibility floor) so the field doesn't look sparser than
+    // its real count at the trough of every star's cycle.
+    const stars = createStars(1200, 800)
+    for (const star of stars) {
+      const dimmest = star.alpha * (1 - star.twinkleDepth)
+      expect(dimmest).toBeGreaterThan(0.05)
+    }
   })
 
   it('sends a shooting star across after the spawn gap elapses', () => {

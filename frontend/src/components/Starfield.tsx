@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react'
 import { useReducedMotion } from 'motion/react'
 import { useTheme } from '../hooks/useTheme'
 
-interface Star {
+type Tint = 'none' | 'warm' | 'cool'
+
+export interface Star {
   /** Distance from the rotation centre, 0-1 of the canvas half-diagonal. */
   radius: number
   /** Starting angle in radians; rotation is added to this each frame. */
@@ -15,12 +17,18 @@ interface Star {
   phase: number
   /** Twinkle rate; 1.05-3.14 gives a 2-6 second period. */
   speed: number
-  /** How much of `alpha` the twinkle swings through. At 1 the star fades
-      out completely; at 0.35 it only dims. Varying this per star is what
-      keeps the sky from looking like a single blinking pattern. */
+  /** How much of `alpha` the twinkle swings through. Capped per layer below
+      1 so no star ever fades to fully invisible — a field that's dimmed at
+      every point of every cycle reads as much sparser than its actual
+      count. */
   twinkleDepth: number
-  /** 0-1, drives how far the star shifts with the pointer. */
+  /** 0-1, drives how far the star shifts with the pointer and, via the
+      layer it came from, roughly how "close" it reads. */
   depth: number
+  /** A small slice of stars are warm- or cool-tinted rather than pure
+      `--c-star`, mimicking real star colour variation (blue giants, red
+      dwarfs) — mostly `'none'`. */
+  tint: Tint
 }
 
 interface ShootingStar {
@@ -34,7 +42,48 @@ interface ShootingStar {
   length: number
 }
 
-const MAX_STARS = 260
+/** One depth band. Stars are generated per-layer rather than from one
+    continuous random spread, so the field reads as actual depth (far stars
+    small, dim, and barely reactive; near stars bigger, brighter, and more
+    responsive to the pointer) rather than a uniform scatter. */
+interface LayerConfig {
+  /** Fraction of the total star budget this layer gets. */
+  countRatio: number
+  size: [number, number]
+  alpha: [number, number]
+  depth: [number, number]
+  twinkleDepth: [number, number]
+}
+
+const LAYERS: LayerConfig[] = [
+  {
+    // far: the bulk of the field — small, numerous, least reactive.
+    countRatio: 0.55,
+    size: [0.3, 0.7],
+    alpha: [0.3, 0.6],
+    depth: [0.05, 0.22],
+    twinkleDepth: [0.18, 0.4],
+  },
+  {
+    // mid
+    countRatio: 0.3,
+    size: [0.6, 1.15],
+    alpha: [0.45, 0.78],
+    depth: [0.28, 0.55],
+    twinkleDepth: [0.22, 0.48],
+  },
+  {
+    // near: fewer, bigger, brighter, most reactive to the pointer.
+    countRatio: 0.15,
+    size: [1.0, 1.9],
+    alpha: [0.62, 0.95],
+    depth: [0.62, 1],
+    twinkleDepth: [0.28, 0.52],
+  },
+]
+
+const MAX_STARS = 420
+const DENSITY_DIVISOR = 4200
 
 /** Milliseconds for one full revolution of the field. Lower is faster. */
 const ROTATION_PERIOD_MS = 240_000
@@ -51,30 +100,48 @@ const SHOOTING_MAX_GAP_MS = 15_000
 const SHOOTING_SPEED = 9
 const SHOOTING_LIFE_FRAMES = 55
 
-function createStars(width: number, height: number): Star[] {
-  const count = Math.min(MAX_STARS, Math.round((width * height) / 6000))
+/** ~10% warm, ~10% cool, the rest untinted — enough to read as texture
+    without the field looking obviously multicoloured. */
+function pickTint(): Tint {
+  const roll = Math.random()
+  if (roll < 0.1) return 'warm'
+  if (roll < 0.2) return 'cool'
+  return 'none'
+}
+
+function randRange([min, max]: [number, number]): number {
+  return min + Math.random() * (max - min)
+}
+
+export function createStars(width: number, height: number): Star[] {
+  const total = Math.min(MAX_STARS, Math.round((width * height) / DENSITY_DIVISOR))
   const stars: Star[] = []
-  for (let i = 0; i < count; i += 1) {
-    stars.push({
-      // sqrt() keeps the distribution uniform by area rather than crowding
-      // the centre, which is what a plain uniform radius would do.
-      radius: Math.sqrt(Math.random()),
-      angle: Math.random() * Math.PI * 2,
-      size: 0.4 + Math.random(),
-      alpha: 0.15 + Math.random() * 0.75,
-      phase: Math.random() * Math.PI * 2,
-      speed: 1.05 + Math.random() * 2.09,
-      twinkleDepth: 0.35 + Math.random() * 0.65,
-      depth: Math.random(),
-    })
+  for (const layer of LAYERS) {
+    const count = Math.round(total * layer.countRatio)
+    for (let i = 0; i < count; i += 1) {
+      stars.push({
+        // sqrt() keeps the distribution uniform by area rather than crowding
+        // the centre, which is what a plain uniform radius would do.
+        radius: Math.sqrt(Math.random()),
+        angle: Math.random() * Math.PI * 2,
+        size: randRange(layer.size),
+        alpha: randRange(layer.alpha),
+        phase: Math.random() * Math.PI * 2,
+        speed: 1.05 + Math.random() * 2.09,
+        twinkleDepth: randRange(layer.twinkleDepth),
+        depth: randRange(layer.depth),
+        tint: pickTint(),
+      })
+    }
   }
   return stars
 }
 
 /**
  * Star canvas scoped to the hero band it sits in, not the viewport. The field
- * rotates slowly, each star twinkles on its own period, stars near the pointer
- * brighten, and a shooting star crosses every 8-15 seconds.
+ * is generated in three depth layers (far/mid/near), rotates slowly, each
+ * star twinkles on its own period, stars near the pointer brighten, and a
+ * shooting star crosses every 8-15 seconds.
  *
  * It stops animating when scrolled out of view or when the tab is hidden, and
  * draws a single static frame under prefers-reduced-motion.
@@ -128,15 +195,30 @@ export function Starfield() {
 
     // Read once per effect run (mount, and again whenever `theme` changes)
     // rather than once per star per frame — `getComputedStyle` is one of the
-    // more expensive DOM reads, and this loop can run for up to 260 stars at
-    // 60fps.
+    // more expensive DOM reads, and this loop can run for up to 420 stars at
+    // 60fps. The tint offsets below are derived from this base triplet
+    // rather than hardcoded, so warm/cool variation stays theme-aware
+    // instead of only looking right in one theme.
     const starColorTriplet =
       getComputedStyle(document.documentElement)
         .getPropertyValue('--c-star')
         .trim() || '255, 255, 255'
+    const [baseR, baseG, baseB] = starColorTriplet
+      .split(',')
+      .map((n) => parseInt(n.trim(), 10))
 
-    function starColor(alpha: number) {
-      return `rgba(${starColorTriplet}, ${alpha})`
+    function clamp255(n: number): number {
+      return Math.max(0, Math.min(255, n))
+    }
+
+    const TINT_TRIPLETS: Record<Tint, string> = {
+      none: `${baseR}, ${baseG}, ${baseB}`,
+      warm: `${clamp255(baseR + 25)}, ${clamp255(baseG + 5)}, ${clamp255(baseB - 35)}`,
+      cool: `${clamp255(baseR - 25)}, ${clamp255(baseG)}, ${clamp255(baseB + 30)}`,
+    }
+
+    function starColor(alpha: number, tint: Tint = 'none') {
+      return `rgba(${TINT_TRIPLETS[tint]}, ${alpha})`
     }
 
     function resize() {
@@ -242,7 +324,7 @@ export function Starfield() {
 
         context.beginPath()
         context.arc(x, y, star.size, 0, Math.PI * 2)
-        context.fillStyle = starColor(alpha)
+        context.fillStyle = starColor(alpha, star.tint)
         context.fill()
       }
 

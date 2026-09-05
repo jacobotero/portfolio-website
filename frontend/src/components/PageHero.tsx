@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { NebulaGlow } from './NebulaGlow'
 import { Starfield } from './Starfield'
 
 interface PageHeroProps {
@@ -21,14 +22,7 @@ export function PageHero({
         fullHeight ? 'min-h-screen flex items-center' : 'pt-28 sm:pt-36 pb-16'
       }`}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 60% 50% at 50% 0%, var(--c-glow), transparent 70%)',
-        }}
-      />
+      <NebulaGlow />
       <Starfield />
       <div className="relative mx-auto max-w-5xl w-full">
         {title && (
