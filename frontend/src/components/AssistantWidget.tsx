@@ -97,7 +97,12 @@ export function AssistantWidget() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? 'Close AI assistant' : 'Ask an AI assistant about Jacob'}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 flex items-center justify-center rounded-full bg-accent text-accent-contrast shadow-lg hover:bg-accent-strong transition-colors"
+        // transition-all (not transition-colors) so the glow and scale below
+        // animate in too, not just the background color. The 300ms duration
+        // and the hover states themselves collapse to near-instant under
+        // prefers-reduced-motion via the global rule in index.css, so no
+        // extra reduced-motion handling is needed for a plain CSS hover.
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 flex items-center justify-center rounded-full bg-accent text-accent-contrast shadow-lg hover:bg-accent-strong hover:shadow-[0_0_32px_8px_var(--c-glow)] hover:scale-105 transition-all duration-300"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
