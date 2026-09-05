@@ -207,7 +207,10 @@ class InfraStack(Stack):
             runtime=lambda_.Runtime.PYTHON_3_13,
             handler="handler.handler",
             code=lambda_.Code.from_asset("lambda/assistant"),
-            timeout=Duration.seconds(20),
+            # Comfortably above the 25s Gemini call timeout in the handler,
+            # while staying under API Gateway's ~29-30s hard integration
+            # ceiling once cold-start and SSM-fetch overhead are added.
+            timeout=Duration.seconds(28),
             environment={
                 "API_KEY_PARAM": GEMINI_API_KEY_PARAM,
             },
