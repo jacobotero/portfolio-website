@@ -13,7 +13,7 @@ export function Footer() {
             Jacob Otero
           </Link>
           <p className="mt-2 text-sm text-text-dim">
-            Software Engineer · AI Engineer · Cloud Engineer
+            Full-stack development · Cloud architecture · Applied AI
           </p>
         </div>
 

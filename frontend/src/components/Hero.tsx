@@ -3,7 +3,10 @@ import profile from '../assets/profile.jpg'
 import { PageHero } from './PageHero'
 import { useRotatingText } from '../hooks/useRotatingText'
 
-const ROLES = ['Software Engineer', 'AI Engineer', 'Cloud Engineer']
+// Domains worked in, deliberately not job titles: "Cloud architecture" is
+// something a student can honestly claim to work on, "Cloud Engineer" is a
+// role. The blurb below already does the positioning.
+const ROLES = ['Full-stack development', 'Cloud architecture', 'Applied AI']
 
 /** Set to null to fall back to the "JO" monogram placeholder. */
 const PROFILE_IMAGE: string | null = profile
