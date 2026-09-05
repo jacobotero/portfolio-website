@@ -449,6 +449,82 @@ describe('Starfield', () => {
     }
   })
 
+  it('gravitates stars toward a nearby cursor and relaxes them back when it leaves', () => {
+    // Pins every star to the same base angle/radius — see the depth-layers
+    // test above for why that's still useful: layers still diverge on depth,
+    // which is what the pull strength scales with. The near layer (pushed
+    // last by createStars) reacts most, so it gives the clearest signal.
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+    ctx.arc.mockClear()
+    tick(0)
+    const [baseX] = positionsFrom(ctx).at(-1)!.split(',').map(Number)
+
+    // Cursor lands 60px to the right of the star — inside CURSOR_PULL_RADIUS
+    // (170px) so it should visibly pull, with an unambiguous direction.
+    window.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: baseX + 60, clientY: 400 }),
+    )
+
+    let pulledX = baseX
+    for (let t = 16; t <= 400; t += 16) {
+      ctx.arc.mockClear()
+      tick(t)
+      ;[pulledX] = positionsFrom(ctx).at(-1)!.split(',').map(Number)
+    }
+    expect(pulledX).toBeGreaterThan(baseX + 8)
+
+    document.dispatchEvent(new Event('mouseleave'))
+
+    let relaxedX = pulledX
+    for (let t = 416; t <= 1200; t += 16) {
+      ctx.arc.mockClear()
+      tick(t)
+      ;[relaxedX] = positionsFrom(ctx).at(-1)!.split(',').map(Number)
+    }
+    // Relaxes back most of the way toward its un-pulled position rather than
+    // staying stuck where the cursor left it.
+    expect(Math.abs(relaxedX - baseX)).toBeLessThan(
+      Math.abs(pulledX - baseX) * 0.5,
+    )
+  })
+
+  it('does not meaningfully pull stars once the cursor is farther than the pull radius', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    const ctx = mockCanvasContext()
+    mockCanvasSize(1200, 800)
+    const tick = captureFrameDriver()
+
+    renderStarfield()
+    ctx.arc.mockClear()
+    tick(0)
+    const [baseX] = positionsFrom(ctx).at(-1)!.split(',').map(Number)
+
+    // 400px away is well outside the 170px pull radius. Note: moving the
+    // pointer at all still nudges position slightly via the pre-existing
+    // whole-field parallax (independent of the pull radius) — this asserts
+    // the pull specifically stayed off, not that nothing moved a single px.
+    window.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: baseX + 400, clientY: 400 }),
+    )
+
+    let laterX = baseX
+    for (let t = 16; t <= 200; t += 16) {
+      ctx.arc.mockClear()
+      tick(t)
+      ;[laterX] = positionsFrom(ctx).at(-1)!.split(',').map(Number)
+    }
+
+    // Parallax alone tops out around 3px over this window; a real pull would
+    // clear 8+ (see the test above), so this margin cleanly distinguishes
+    // "pull didn't engage" from "pull engaged."
+    expect(Math.abs(laterX - baseX)).toBeLessThan(6)
+  })
+
   it('sends a shooting star across after the spawn gap elapses', () => {
     const ctx = mockCanvasContext()
     mockCanvasSize(1200, 800)

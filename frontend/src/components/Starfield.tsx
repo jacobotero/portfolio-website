@@ -29,6 +29,14 @@ export interface Star {
       `--c-star`, mimicking real star colour variation (blue giants, red
       dwarfs) — mostly `'none'`. */
   tint: Tint
+  /** Current cursor-pull offset and its velocity, in px. Mutable simulation
+      state driven by a damped spring in `draw()` each frame — not part of a
+      star's generated identity, just where it happens to be right now.
+      Always 0 under reduced motion. */
+  pullX: number
+  pullY: number
+  pullVX: number
+  pullVY: number
 }
 
 interface ShootingStar {
@@ -82,8 +90,8 @@ const LAYERS: LayerConfig[] = [
   },
 ]
 
-const MAX_STARS = 420
-const DENSITY_DIVISOR = 4200
+const MAX_STARS = 700
+const DENSITY_DIVISOR = 2400
 
 /** Milliseconds for one full revolution of the field. Lower is faster. */
 const ROTATION_PERIOD_MS = 240_000
@@ -94,6 +102,23 @@ const PARALLAX_EASE = 0.06
 /** Stars within this many px of the pointer brighten. */
 const GLOW_RADIUS = 140
 const GLOW_BOOST = 0.65
+
+/** Stars within this many px of the pointer get pulled toward it — a wider
+    net than the glow radius so the "bubble" of gravitating stars is visibly
+    bigger than just the brightened core. */
+const CURSOR_PULL_RADIUS = 170
+/** Max pull offset in px, at the pointer's exact centre, for a depth-1 (near
+    layer) star. Scaled down for farther stars via PULL_DEPTH_FLOOR below. */
+const PULL_STRENGTH = 26
+/** A far star (depth near 0) still moves at this fraction of a near star's
+    pull — keeps the effect a shared "field" rather than only near stars
+    reacting, while near stars still visibly lead it. */
+const PULL_DEPTH_FLOOR = 0.25
+/** Spring stiffness and per-frame velocity damping for the pull. Tuned for a
+    quick, slightly overshooting "bubbly" settle rather than a stiff snap or
+    a loose wobble. */
+const PULL_SPRING_K = 0.1
+const PULL_SPRING_DAMPING = 0.78
 
 const SHOOTING_MIN_GAP_MS = 8_000
 const SHOOTING_MAX_GAP_MS = 15_000
@@ -131,6 +156,10 @@ export function createStars(width: number, height: number): Star[] {
         twinkleDepth: randRange(layer.twinkleDepth),
         depth: randRange(layer.depth),
         tint: pickTint(),
+        pullX: 0,
+        pullY: 0,
+        pullVX: 0,
+        pullVY: 0,
       })
     }
   }
@@ -140,8 +169,9 @@ export function createStars(width: number, height: number): Star[] {
 /**
  * Star canvas scoped to the hero band it sits in, not the viewport. The field
  * is generated in three depth layers (far/mid/near), rotates slowly, each
- * star twinkles on its own period, stars near the pointer brighten, and a
- * shooting star crosses every 8-15 seconds.
+ * star twinkles on its own period, stars near the pointer brighten and get
+ * pulled toward it (more so the closer their layer), and a shooting star
+ * crosses every 8-15 seconds.
  *
  * It stops animating when scrolled out of view or when the tab is hidden, and
  * draws a single static frame under prefers-reduced-motion.
@@ -195,7 +225,7 @@ export function Starfield() {
 
     // Read once per effect run (mount, and again whenever `theme` changes)
     // rather than once per star per frame — `getComputedStyle` is one of the
-    // more expensive DOM reads, and this loop can run for up to 420 stars at
+    // more expensive DOM reads, and this loop can run for up to 700 stars at
     // 60fps. The tint offsets below are derived from this base triplet
     // rather than hardcoded, so warm/cool variation stays theme-aware
     // instead of only looking right in one theme.
@@ -309,21 +339,51 @@ export function Starfield() {
             0.5 + 0.5 * Math.sin(time * 0.001 * star.speed + star.phase)
           alpha *= 1 - star.twinkleDepth + star.twinkleDepth * wave
 
-          // Proximity glow. Squared-distance test first so the sqrt only runs
-          // for the handful of stars actually near the pointer.
+          // Shared for both the proximity glow and the cursor-pull spring
+          // below. Squared-distance test first so the sqrt only runs for the
+          // handful of stars actually near the pointer.
           const dx = pointerX - x
           const dy = pointerY - y
           const distanceSq = dx * dx + dy * dy
+
           if (distanceSq < GLOW_RADIUS * GLOW_RADIUS) {
             const falloff = 1 - Math.sqrt(distanceSq) / GLOW_RADIUS
             alpha = Math.min(1, alpha + falloff * GLOW_BOOST)
           }
+
+          // Cursor pull: stars within CURSOR_PULL_RADIUS get a target offset
+          // toward the pointer, stronger the closer they are and the nearer
+          // their depth layer. A damped spring eases toward that target
+          // rather than snapping to it, so the pull has weight, and eases
+          // back the same way once the pointer moves away or leaves —
+          // that give and release is what reads as "bubbly" rather than
+          // stiff.
+          let targetPullX = 0
+          let targetPullY = 0
+          if (distanceSq < CURSOR_PULL_RADIUS * CURSOR_PULL_RADIUS) {
+            const dist = Math.sqrt(distanceSq) || 1
+            const falloff = 1 - dist / CURSOR_PULL_RADIUS
+            const strength =
+              falloff *
+              PULL_STRENGTH *
+              (PULL_DEPTH_FLOOR + (1 - PULL_DEPTH_FLOOR) * star.depth)
+            targetPullX = (dx / dist) * strength
+            targetPullY = (dy / dist) * strength
+          }
+          star.pullVX =
+            (star.pullVX + (targetPullX - star.pullX) * PULL_SPRING_K) *
+            PULL_SPRING_DAMPING
+          star.pullVY =
+            (star.pullVY + (targetPullY - star.pullY) * PULL_SPRING_K) *
+            PULL_SPRING_DAMPING
+          star.pullX += star.pullVX
+          star.pullY += star.pullVY
         }
 
         if (alpha <= 0.002) continue
 
         context.beginPath()
-        context.arc(x, y, star.size, 0, Math.PI * 2)
+        context.arc(x + star.pullX, y + star.pullY, star.size, 0, Math.PI * 2)
         context.fillStyle = starColor(alpha, star.tint)
         context.fill()
       }
