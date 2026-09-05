@@ -194,6 +194,58 @@ export const projects: Project[] = [
       ],
     },
   },
+  {
+    slug: 'portfolio-infrastructure',
+    title: 'Portfolio Website Infrastructure',
+    tagline: 'The AWS pipeline behind the site you’re looking at right now',
+    description:
+      'This portfolio itself: a React SPA served from S3 through CloudFront, backed by API Gateway and Lambda for the contact form and AI assistant, provisioned entirely as code with AWS CDK and deployed through GitHub Actions.',
+    tech: [
+      'AWS CDK',
+      'S3',
+      'CloudFront',
+      'Lambda',
+      'API Gateway',
+      'SES',
+      'Route 53',
+      'GitHub Actions',
+    ],
+    highlights: [
+      'Entire stack (CDN, storage, compute, DNS, email) defined as code in AWS CDK and deployed through CI/CD, not clicked together in a console',
+      'Contact form and AI assistant run on Lambda behind API Gateway, with the Gemini API key stored in SSM Parameter Store rather than in code or an environment file',
+      'GitHub Actions authenticates to AWS via OIDC, so no long-lived AWS access keys are stored as repo secrets',
+    ],
+    cover: '/covers/portfolio-infrastructure.svg',
+    github: 'https://github.com/jacobotero/portfolio-website',
+    live: 'https://jacobotero.dev',
+    featured: false,
+    detail: {
+      problem:
+        'A portfolio site is only half the pitch for someone going for cloud or backend roles — the other half is proving you can actually stand up and run real infrastructure, not just push a static build to a host that does everything for you. I wanted this site’s own deployment to be that proof, built on the same AWS services covered by the Solutions Architect - Associate exam.',
+      approach: [
+        'Provisioned the whole stack in AWS CDK (Python): a private S3 bucket serving the built frontend through CloudFront with Origin Access Control, so the bucket itself is never public.',
+        'Routed the domain through Route 53 with an ACM certificate for HTTPS, and configured CloudFront’s error responses to fall back to index.html so client-side routing survives a hard refresh on a nested path.',
+        'Built the contact form and the AI assistant as separate Lambda functions (Python) behind an API Gateway HTTP API, each scoped to its own least-privilege IAM role.',
+        'Verified the sending domain with SES and DKIM so contact-form email passes DMARC alignment instead of landing in spam.',
+        'Stored the Gemini API key in SSM Parameter Store (SecureString, standard tier, no extra cost) rather than an environment variable or a secret baked into the Lambda package.',
+        'Wired GitHub Actions to deploy on push via OpenID Connect federation to an IAM role, so no AWS access keys live in the repo at all.',
+        'Wrote pytest unit tests for both Lambda handlers, mocking AWS with moto, and Vitest/React Testing Library coverage for the frontend — both run in CI before anything deploys.',
+      ],
+      outcome: [
+        'Everything here, frontend included, is defined in version-controlled code and can be rebuilt from a cdk deploy and a push to main.',
+        'No AWS credentials of any kind are stored as a GitHub secret.',
+        'The contact form and AI assistant both run at effectively zero cost on AWS’s free tier at this site’s traffic level.',
+      ],
+      stack: [
+        { layer: 'CDN & hosting', tech: 'S3, CloudFront (Origin Access Control), Route 53, ACM' },
+        { layer: 'Compute', tech: 'AWS Lambda (Python 3.13), API Gateway HTTP API' },
+        { layer: 'Email', tech: 'SES with a DKIM-verified sending domain' },
+        { layer: 'Secrets', tech: 'SSM Parameter Store (SecureString)' },
+        { layer: 'IaC', tech: 'AWS CDK (Python)' },
+        { layer: 'CI/CD', tech: 'GitHub Actions, OIDC-federated deploys (no stored AWS keys)' },
+      ],
+    },
+  },
 ]
 
 export function getProject(slug: string): Project | undefined {

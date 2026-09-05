@@ -59,6 +59,17 @@ describe('ProjectDetail', () => {
     expect(screen.getByText('MongoDB (local, Docker, or Atlas)')).toBeInTheDocument()
   })
 
+  it('renders the portfolio infrastructure case study, live demo pointed at the real site', () => {
+    renderAt('portfolio-infrastructure')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Portfolio Website Infrastructure',
+    )
+    expect(screen.getByRole('link', { name: /live demo/i })).toHaveAttribute(
+      'href',
+      'https://jacobotero.dev',
+    )
+  })
+
   it('sets the document title to the project name', () => {
     renderAt('donortrack')
     expect(document.title).toBe('DonorTrack - Jacob Otero')

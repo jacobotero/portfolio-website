@@ -26,6 +26,9 @@ describe('ProjectsPage', () => {
     expect(
       screen.getByText('Resume & Job Description Analyzer'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByText('Portfolio Website Infrastructure'),
+    ).toBeInTheDocument()
   })
 
   it('narrows the list when a tech filter is selected', async () => {

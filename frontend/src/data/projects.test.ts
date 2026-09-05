@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { allTech, getProject, projects } from './projects'
 
 describe('projects data', () => {
-  it('has four projects', () => {
-    expect(projects).toHaveLength(4)
+  it('has five projects', () => {
+    expect(projects).toHaveLength(5)
   })
 
   it('has three featured projects for the home page', () => {
@@ -23,10 +23,12 @@ describe('projects data', () => {
     expect(getProject('nope')).toBeUndefined()
   })
 
-  it('exposes a live URL only for DonorTrack', () => {
+  it('exposes a live URL only for DonorTrack and the portfolio site itself', () => {
     const withLive = projects.filter((p) => p.live)
-    expect(withLive).toHaveLength(1)
-    expect(withLive[0].slug).toBe('donortrack')
+    expect(withLive.map((p) => p.slug).sort()).toEqual([
+      'donortrack',
+      'portfolio-infrastructure',
+    ])
   })
 
   it('returns a sorted, deduplicated tech list', () => {
