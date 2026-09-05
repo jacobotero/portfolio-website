@@ -1,9 +1,23 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppRoutes } from '../App'
 import { ThemeProvider } from '../context/ThemeProvider'
+
+// Home renders GitHubActivity, which calls the real fetch API on mount. A
+// never-settling promise keeps these tests deterministic (no real network
+// call, no stray async state update after the test finishes).
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {})),
+  )
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 function renderAt(path: string) {
   return render(

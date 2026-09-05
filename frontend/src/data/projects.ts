@@ -17,6 +17,9 @@ export interface Project {
   }
 }
 
+// Adding, removing, or renaming a slug here? Update the corresponding
+// <url> entries in frontend/public/sitemap.xml too — it's hand-maintained,
+// not generated from this file.
 export const projects: Project[] = [
   {
     slug: 'donortrack',
