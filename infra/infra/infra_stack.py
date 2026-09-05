@@ -188,12 +188,17 @@ class InfraStack(Stack):
         contact_fn.add_to_role_policy(
             iam.PolicyStatement(
                 actions=["ses:SendEmail", "ses:SendRawEmail"],
-                # Scoped to the one verified identity this Lambda actually
-                # sends as: the DOMAIN (CONTACT_FROM_EMAIL is now a display
-                # name plus an address at it, not an identity of its own —
-                # verifying the domain authorizes any address at it).
+                # Both identities are required, confirmed by a live
+                # AccessDenied naming the recipient identity when only the
+                # sender was granted: while the account is in SES sandbox
+                # mode, the IAM resource-based check on ses:SendEmail
+                # evaluates the destination address too, not just the
+                # source. The single old grant happened to cover both only
+                # because Source and Destination used to be the same
+                # address.
                 resources=[
-                    f"arn:aws:ses:{self.region}:{self.account}:identity/{DOMAIN_NAME}"
+                    f"arn:aws:ses:{self.region}:{self.account}:identity/{DOMAIN_NAME}",
+                    f"arn:aws:ses:{self.region}:{self.account}:identity/{CONTACT_TO_EMAIL}",
                 ],
             )
         )

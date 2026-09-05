@@ -51,7 +51,11 @@ def test_ses_domain_identity_created_for_the_site_domain():
     )
 
 
-def test_contact_lambda_can_only_send_as_the_verified_domain():
+def test_contact_lambda_can_send_from_the_domain_and_to_its_own_inbox():
+    # Both grants are required: SES's sandbox-mode IAM check on ses:SendEmail
+    # evaluates the destination identity too, not just the source — a real
+    # AccessDenied naming the recipient identity confirmed this when only the
+    # sender identity was granted.
     template = _synth_template()
     template.has_resource_properties(
         "AWS::IAM::Policy",
@@ -65,8 +69,15 @@ def test_contact_lambda_can_only_send_as_the_verified_domain():
                                     ["ses:SendEmail"]
                                 ),
                                 "Effect": "Allow",
-                                "Resource": assertions.Match.string_like_regexp(
-                                    r".*identity/jacobotero\.dev$"
+                                "Resource": assertions.Match.array_with(
+                                    [
+                                        assertions.Match.string_like_regexp(
+                                            r".*identity/jacobotero\.dev$"
+                                        ),
+                                        assertions.Match.string_like_regexp(
+                                            r".*identity/jacobotero0313@gmail\.com$"
+                                        ),
+                                    ]
                                 ),
                             }
                         )
