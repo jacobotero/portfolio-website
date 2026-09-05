@@ -117,26 +117,21 @@ describe('CustomCursor', () => {
     expect(getDot().classList.contains('is-hovering')).toBe(false)
   })
 
-  it('eases toward the pointer target across frames rather than snapping every frame', () => {
+  it('tracks the pointer target within a single frame, with no perceptible trailing lag', () => {
     mockPointerFine(true)
     const tick = captureFrameDriver()
     render(<CustomCursor />)
 
     move(0, 0) // reveals at the origin, current == target == 0,0
-    move(200, 0) // target jumps away; current should lag behind at first
+    move(200, 0) // target jumps away
 
     tick(16)
-    const afterOneFrame = getDot().style.transform
-    const xAfterOne = Number(afterOneFrame.match(/translate3d\(([\d.-]+)px/)?.[1])
-    expect(xAfterOne).toBeGreaterThan(0)
-    expect(xAfterOne).toBeLessThan(200) // hasn't snapped straight to the target
-
-    for (let i = 0; i < 30; i += 1) tick(16 * (i + 2))
-    const xAfterMany = Number(
+    const xAfterOneFrame = Number(
       getDot().style.transform.match(/translate3d\(([\d.-]+)px/)?.[1],
     )
-    expect(xAfterMany).toBeGreaterThan(xAfterOne) // kept closing the gap
-    expect(xAfterMany).toBeCloseTo(200, 0) // and converged on the target
+    // EASE = 1: the single frame closes the whole gap immediately, matching
+    // the native cursor's feel rather than a visibly trailing dot.
+    expect(xAfterOneFrame).toBe(200)
   })
 
   it('starts no easing loop under reduced motion, tracking the pointer directly instead', () => {
