@@ -3,7 +3,6 @@ import { useLocation, useOutlet } from 'react-router'
 import { useAnalyticsPageview } from '../hooks/useAnalyticsPageview'
 import { AssistantWidget } from './AssistantWidget'
 import { BackToTop } from './BackToTop'
-import { CustomCursor } from './CustomCursor'
 import { Footer } from './Footer'
 import { Nav } from './Nav'
 import { ScrollToTop } from './ScrollToTop'
@@ -62,10 +61,6 @@ export function Layout() {
           persistent chrome, not page content — mounting it inside would
           remount it (and lose the conversation) on every route change. */}
       <AssistantWidget />
-      {/* Same reasoning as AssistantWidget: persistent chrome, not page
-          content — a route change shouldn't reset the dot to hidden and
-          make it re-detect the pointer. */}
-      <CustomCursor />
     </>
   )
 }
