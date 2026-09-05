@@ -7,6 +7,7 @@ interface Certification {
   alt: string
   title: string
   description: string
+  status: 'completed' | 'in-progress'
   link?: string
 }
 
@@ -16,17 +17,56 @@ const CERTIFICATIONS: Certification[] = [
     alt: 'AWS Certified Solutions Architect - Associate badge',
     title: 'AWS Certified Solutions Architect - Associate',
     description:
-      "In progress. This site's infrastructure (S3, CloudFront, Lambda, API Gateway) is built with what I'm learning along the way.",
+      "This site's infrastructure (S3, CloudFront, Lambda, API Gateway) is built with what I'm learning along the way.",
+    status: 'in-progress',
   },
   {
     badge: googleAiBadge,
     alt: 'Google AI Professional Certificate badge',
     title: 'Google AI Professional Certificate',
-    description:
-      'Completed. Practical coursework on building and applying AI/ML tools.',
+    description: 'Practical coursework on building and applying AI/ML tools.',
+    status: 'completed',
     link: 'https://www.coursera.org/account/accomplishments/professional-cert/certificate/MFQ3BPXDSCLO',
   },
 ]
+
+/** A colored badge rather than a word buried in the description — status is
+    the first thing worth knowing about a cert, not a footnote. Both states
+    reuse the existing accent token rather than introducing a new color, so
+    "in progress" (outlined, pulsing dot: still moving) and "completed"
+    (solid, checkmark: settled) read as two weights of the same brand color
+    instead of an arbitrary traffic-light green/amber. */
+function StatusPill({ status }: { status: Certification['status'] }) {
+  if (status === 'completed') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-contrast">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-3 h-3"
+          aria-hidden="true"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        Completed
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-accent text-accent">
+      <span
+        className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"
+        aria-hidden="true"
+      />
+      In Progress
+    </span>
+  )
+}
 
 export function Certifications() {
   return (
@@ -51,8 +91,9 @@ export function Certifications() {
                 className="w-16 sm:w-20 shrink-0"
               />
               <div>
-                <p className="text-heading font-medium flex items-center gap-2">
+                <p className="text-heading font-medium flex flex-wrap items-center gap-2">
                   {cert.title}
+                  <StatusPill status={cert.status} />
                   {cert.link && (
                     <a
                       href={cert.link}
