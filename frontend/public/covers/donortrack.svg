@@ -17,5 +17,5 @@
   <rect width="1200" height="630" fill="url(#dots)" />
   <rect width="1200" height="630" fill="url(#glow)" />
   <text x="80" y="300" font-family="Outfit, Inter, system-ui, sans-serif" font-size="82" font-weight="800" fill="#f5f3ff">DonorTrack</text>
-  <text x="80" y="360" font-family="Inter, system-ui, sans-serif" font-size="30" fill="#a78bfa">React · TypeScript · PostgreSQL · Stripe</text>
+  <text x="80" y="360" font-family="Inter, system-ui, sans-serif" font-size="30" fill="#a78bfa">React · TypeScript · Node.js · AWS</text>
 </svg>
